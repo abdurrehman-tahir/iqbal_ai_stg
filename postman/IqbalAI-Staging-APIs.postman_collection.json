@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "IqbalAI Staging APIs (Discovered from Codebase)",
-    "description": "Postman collection generated from Flask route definitions in this repository.\n\nAuth uses session cookies; in Postman, send login first and keep cookie jar enabled.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "name": "IqbalAI Staging APIs (Code-validated)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from Flask route handlers and request parsing in code.\n\nImportant:\n- /auth endpoints parse form fields (x-www-form-urlencoded), not JSON.\n- Most endpoints require session cookie; login first and keep Postman cookie jar enabled."
   },
   "variable": [
     {
@@ -19,18 +19,18 @@
     },
     {
       "key": "thread_id",
-      "value": "sample-thread-id"
+      "value": "user_1_conv_1"
     },
     {
       "key": "user_id",
       "value": "1"
     },
     {
-      "key": "coupon_id",
+      "key": "doc_id",
       "value": "1"
     },
     {
-      "key": "doc_id",
+      "key": "coupon_id",
       "value": "1"
     },
     {
@@ -40,7 +40,7 @@
   ],
   "item": [
     {
-      "name": "Auth",
+      "name": "Auth (/auth)",
       "item": [
         {
           "name": "Register Email",
@@ -49,7 +49,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               }
             ],
             "url": {
@@ -64,13 +64,14 @@
             },
             "description": "",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"useremail\": \"john@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "useremail",
+                  "value": "john@example.com",
+                  "type": "text"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -81,17 +82,17 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/auth/verify_email/:token",
+              "raw": "{{baseUrl}}/auth/verify_email/{{token}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "auth",
                 "verify_email",
-                ":token"
+                "{{token}}"
               ]
             },
-            "description": "Replace :token with verification token."
+            "description": "Use token from email link."
           },
           "response": []
         },
@@ -102,7 +103,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               }
             ],
             "url": {
@@ -117,13 +118,44 @@
             },
             "description": "",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"useremail\": \"john@example.com\",\n  \"username\": \"john_doe\",\n  \"password\": \"secure_password\",\n  \"class_standard\": \"10th\",\n  \"medium\": \"English\",\n  \"role\": \"student\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "useremail",
+                  "value": "john@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "john_doe",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "secure_password",
+                  "type": "text"
+                },
+                {
+                  "key": "class_standard",
+                  "value": "10th",
+                  "type": "text"
+                },
+                {
+                  "key": "medium",
+                  "value": "English",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "student",
+                  "type": "text"
+                },
+                {
+                  "key": "groq_api_key",
+                  "value": "",
+                  "type": "text"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -135,7 +167,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               }
             ],
             "url": {
@@ -150,13 +182,19 @@
             },
             "description": "",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"useremail\": \"john@example.com\",\n  \"password\": \"secure_password\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "useremail",
+                  "value": "john@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "secure_password",
+                  "type": "text"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -200,7 +238,7 @@
           "response": []
         },
         {
-          "name": "OpenAI Realtime Session",
+          "name": "Realtime Session Token",
           "request": {
             "method": "GET",
             "header": [],
@@ -225,7 +263,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               }
             ],
             "url": {
@@ -240,13 +278,14 @@
             },
             "description": "",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"useremail\": \"john@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "useremail",
+                  "value": "john@example.com",
+                  "type": "text"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -258,7 +297,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               }
             ],
             "url": {
@@ -273,13 +312,29 @@
             },
             "description": "",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"useremail\": \"john@example.com\",\n  \"otp\": \"123456\",\n  \"new_password\": \"new_password\",\n  \"confirm_password\": \"new_password\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "useremail",
+                  "value": "john@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "otp",
+                  "value": "123456",
+                  "type": "text"
+                },
+                {
+                  "key": "new_password",
+                  "value": "new_password",
+                  "type": "text"
+                },
+                {
+                  "key": "confirm_password",
+                  "value": "new_password",
+                  "type": "text"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -308,6 +363,56 @@
           "response": []
         },
         {
+          "name": "Get Prompt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/get_prompt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "get_prompt"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Prompt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/update_prompt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "update_prompt"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"You are a helpful tutor...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Chat",
           "request": {
             "method": "POST",
@@ -329,7 +434,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Explain Newton's laws\",\n  \"conversation_id\": 1,\n  \"use_rag\": true\n}",
+              "raw": "{\n  \"input\": \"Explain Newton's laws\",\n  \"conversation_id\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -395,13 +500,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/get_messages/:conversation_id",
+              "raw": "{{baseUrl}}/get_messages/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "get_messages",
-                ":conversation_id"
+                "{{conversation_id}}"
               ]
             },
             "description": ""
@@ -414,13 +519,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/get_conversation/:conversation_id",
+              "raw": "{{baseUrl}}/get_conversation/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "get_conversation",
-                ":conversation_id"
+                "{{conversation_id}}"
               ]
             },
             "description": ""
@@ -433,13 +538,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/delete_conversation/:conversation_id",
+              "raw": "{{baseUrl}}/delete_conversation/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "delete_conversation",
-                ":conversation_id"
+                "{{conversation_id}}"
               ]
             },
             "description": ""
@@ -475,13 +580,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/update_conversation_title/:conversation_id",
+              "raw": "{{baseUrl}}/update_conversation_title/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "update_conversation_title",
-                ":conversation_id"
+                "{{conversation_id}}"
               ]
             },
             "description": "",
@@ -503,13 +608,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/download_chat/:conversation_id",
+              "raw": "{{baseUrl}}/download_chat/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "download_chat",
-                ":conversation_id"
+                "{{conversation_id}}"
               ]
             },
             "description": ""
@@ -522,81 +627,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/download_last_ai_message/:conversation_id",
+              "raw": "{{baseUrl}}/download_last_ai_message/{{conversation_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "download_last_ai_message",
-                ":conversation_id"
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Get Prompt",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/get_prompt",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "get_prompt"
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Update Prompt",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/update_prompt",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "update_prompt"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prompt\": \"You are a helpful tutor...\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Token Usage",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/get_token_usage",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "get_token_usage"
+                "{{conversation_id}}"
               ]
             },
             "description": ""
@@ -640,7 +677,7 @@
           "response": []
         },
         {
-          "name": "Speech-to-Text",
+          "name": "STT",
           "request": {
             "method": "POST",
             "header": [],
@@ -669,7 +706,7 @@
           "response": []
         },
         {
-          "name": "Text-to-Speech",
+          "name": "TTS",
           "request": {
             "method": "POST",
             "header": [
@@ -704,10 +741,10 @@
       ]
     },
     {
-      "name": "/api Chatbot",
+      "name": "API Chatbot (/api/chat)",
       "item": [
         {
-          "name": "API Chat",
+          "name": "Chatbot Chat",
           "request": {
             "method": "POST",
             "header": [
@@ -797,8 +834,28 @@
                 },
                 {
                   "key": "lessonTitle",
-                  "value": "Physics Intro",
-                  "type": "text"
+                  "type": "text",
+                  "value": "Physics Intro"
+                },
+                {
+                  "key": "learningObjective",
+                  "type": "text",
+                  "value": "Understand laws of motion"
+                },
+                {
+                  "key": "focusArea",
+                  "type": "text",
+                  "value": "Physics"
+                },
+                {
+                  "key": "gradeLevel",
+                  "type": "text",
+                  "value": "10"
+                },
+                {
+                  "key": "additionalNotes",
+                  "type": "text",
+                  "value": ""
                 }
               ]
             }
@@ -806,7 +863,7 @@
           "response": []
         },
         {
-          "name": "Download Lesson",
+          "name": "Download Lesson DOCX",
           "request": {
             "method": "POST",
             "header": [
@@ -827,7 +884,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_content\": \"Lesson content\"\n}",
+              "raw": "{\n  \"lesson_data\": {\n    \"title\": \"Lesson\",\n    \"objective\": \"Understand basics\",\n    \"content\": \"Lesson content\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -838,7 +895,7 @@
           "response": []
         },
         {
-          "name": "Update API Key (legacy)",
+          "name": "Update API Key (legacy route)",
           "request": {
             "method": "POST",
             "header": [
@@ -859,7 +916,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"groq_api_key\": \"gsk_xxx\"\n}",
+              "raw": "{\n  \"api_key\": \"gsk_xxx\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -891,7 +948,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_content\": \"...\",\n  \"prompt\": \"Simplify\"\n}",
+              "raw": "{\n  \"lesson_text\": \"# Lesson\",\n  \"user_prompt\": \"Simplify this for grade 8\",\n  \"filename\": \"lesson.pdf\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -923,7 +980,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_content\": \"...\"\n}",
+              "raw": "{\n  \"lesson\": {\n    \"title\": \"Lesson\",\n    \"sections\": []\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -934,7 +991,7 @@
           "response": []
         },
         {
-          "name": "Download Edited Lesson",
+          "name": "Download Edited Lesson DOCX",
           "request": {
             "method": "POST",
             "header": [
@@ -955,7 +1012,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_content\": \"...\"\n}",
+              "raw": "{\n  \"lesson_markdown\": \"# Edited lesson\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -971,7 +1028,72 @@
       "name": "Lessons (/api/lessons)",
       "item": [
         {
-          "name": "Create Lesson",
+          "name": "Create Lesson from File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lessons/create_lesson",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lessons",
+                "create_lesson"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "lessonTitle",
+                  "type": "text",
+                  "value": "Physics Intro"
+                },
+                {
+                  "key": "lessonPrompt",
+                  "type": "text",
+                  "value": "Explain simply"
+                },
+                {
+                  "key": "focusArea",
+                  "type": "text",
+                  "value": "Physics"
+                },
+                {
+                  "key": "gradeLevel",
+                  "type": "text",
+                  "value": "10"
+                },
+                {
+                  "key": "additionalNotes",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "key": "tableExtraction",
+                  "type": "text",
+                  "value": "false"
+                },
+                {
+                  "key": "imageExtraction",
+                  "type": "text",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Lesson (JSON)",
           "request": {
             "method": "POST",
             "header": [
@@ -994,41 +1116,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Lesson Title\",\n  \"content\": \"Lesson content\",\n  \"is_public\": false\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Lesson (alt)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/lessons/create_lesson",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "lessons",
-                "create_lesson"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Lesson Title\"\n}",
+              "raw": "{\n  \"title\": \"Lesson Title\",\n  \"content\": \"Lesson content\",\n  \"focus_area\": \"Physics\",\n  \"grade_level\": \"10\",\n  \"summary\": \"Summary\",\n  \"rag_thread_id\": \"{{thread_id}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1109,12 +1197,12 @@
               ],
               "query": [
                 {
-                  "key": "page",
-                  "value": "1"
+                  "key": "grade_level",
+                  "value": "10"
                 },
                 {
-                  "key": "per_page",
-                  "value": "20"
+                  "key": "focus_area",
+                  "value": "Physics"
                 }
               ]
             },
@@ -1141,6 +1229,10 @@
                 {
                   "key": "q",
                   "value": "physics"
+                },
+                {
+                  "key": "grade_level",
+                  "value": "10"
                 }
               ]
             },
@@ -1154,7 +1246,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1162,7 +1254,7 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1175,7 +1267,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/view",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/view",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1183,7 +1275,7 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "view"
               ]
             },
@@ -1202,7 +1294,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1210,13 +1302,13 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated\"\n}",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"content\": \"Updated content\",\n  \"summary\": \"Updated summary\",\n  \"learning_objectives\": [\n    \"Objective 1\"\n  ],\n  \"focus_area\": \"Physics\",\n  \"grade_level\": \"10\",\n  \"is_public\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1232,7 +1324,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1240,7 +1332,7 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1253,7 +1345,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/download_lesson/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/download_lesson/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1261,7 +1353,7 @@
                 "api",
                 "lessons",
                 "download_lesson",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1274,7 +1366,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/download_lesson_ppt/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/download_lesson_ppt/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1282,7 +1374,7 @@
                 "api",
                 "lessons",
                 "download_lesson_ppt",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1295,7 +1387,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/download_lesson_pdf/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/download_lesson_pdf/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1303,7 +1395,7 @@
                 "api",
                 "lessons",
                 "download_lesson_pdf",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1311,7 +1403,7 @@
           "response": []
         },
         {
-          "name": "Ask Lesson Question",
+          "name": "Ask Question (lesson)",
           "request": {
             "method": "POST",
             "header": [
@@ -1334,7 +1426,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_id\": 1,\n  \"question\": \"Explain momentum\"\n}",
+              "raw": "{\n  \"lesson_id\": 1,\n  \"question\": \"Explain momentum\",\n  \"allow_rag\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1350,7 +1442,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson_chat_history/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/lesson_chat_history/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1358,7 +1450,7 @@
                 "api",
                 "lessons",
                 "lesson_chat_history",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1371,7 +1463,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/clear_lesson_chat_history/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/clear_lesson_chat_history/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1379,7 +1471,7 @@
                 "api",
                 "lessons",
                 "clear_lesson_chat_history",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1397,7 +1489,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/create_version",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/create_version",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1405,14 +1497,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "create_version"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"new version\"\n}",
+              "raw": "{\n  \"title\": \"Version 2\",\n  \"content\": \"Improved content\",\n  \"summary\": \"Updated summary\",\n  \"learning_objectives\": [\n    \"Objective 1\"\n  ],\n  \"focus_area\": \"Physics\",\n  \"grade_level\": \"10\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1459,7 +1551,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/create_ai_version",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/create_ai_version",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1467,14 +1559,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "create_ai_version"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"prompt\": \"Improve this lesson\"\n}",
+              "raw": "{\n  \"improvement_prompt\": \"Improve clarity and examples\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1490,7 +1582,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/faqs/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/faqs/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1498,7 +1590,7 @@
                 "api",
                 "lessons",
                 "faqs",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1511,7 +1603,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/faqs_count/:lesson_id",
+              "raw": "{{baseUrl}}/api/lessons/faqs_count/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1519,7 +1611,7 @@
                 "api",
                 "lessons",
                 "faqs_count",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -1567,7 +1659,7 @@
           "response": []
         },
         {
-          "name": "Save Lesson Draft",
+          "name": "Save Draft",
           "request": {
             "method": "POST",
             "header": [
@@ -1577,7 +1669,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/save_draft",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/save_draft",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1585,14 +1677,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "save_draft"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"draft_content\": \"...\"\n}",
+              "raw": "{\n  \"draft_content\": \"Draft content\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1603,12 +1695,12 @@
           "response": []
         },
         {
-          "name": "Get Lesson Draft",
+          "name": "Get Draft",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/get_draft",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/get_draft",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1616,7 +1708,7 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "get_draft"
               ]
             },
@@ -1635,7 +1727,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/review_by_ai",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/review_by_ai",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1643,14 +1735,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "review_by_ai"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"review_prompt\": \"Check quality\"\n}",
+              "raw": "{\n  \"query\": \"Review this lesson for clarity\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1671,7 +1763,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/apply_prompt",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/apply_prompt",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1679,14 +1771,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "apply_prompt"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"prompt\": \"Simplify language\"\n}",
+              "raw": "{\n  \"prompt\": \"Make it simpler\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1700,14 +1792,9 @@
           "name": "Finalize Version",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/finalize_version",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/finalize_version",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1715,20 +1802,11 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "finalize_version"
               ]
             },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"final_content\": \"...\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
+            "description": ""
           },
           "response": []
         },
@@ -1743,7 +1821,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/interactive_chat",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/interactive_chat",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1751,14 +1829,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "interactive_chat"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Help me teach this\"\n}",
+              "raw": "{\n  \"query\": \"How to teach this in 30 mins?\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1779,7 +1857,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/interactive_chat_stream",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/interactive_chat_stream",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1787,14 +1865,14 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "interactive_chat_stream"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Help me teach this\"\n}",
+              "raw": "{\n  \"query\": \"How to teach this in 30 mins?\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1805,12 +1883,12 @@
           "response": []
         },
         {
-          "name": "Clear Lesson Draft",
+          "name": "Clear Draft",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/lessons/lesson/:lesson_id/clear_draft",
+              "raw": "{{baseUrl}}/api/lessons/lesson/{{lesson_id}}/clear_draft",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1818,7 +1896,7 @@
                 "api",
                 "lessons",
                 "lesson",
-                ":lesson_id",
+                "{{lesson_id}}",
                 "clear_draft"
               ]
             },
@@ -1832,7 +1910,7 @@
       "name": "RAG (/api/rag)",
       "item": [
         {
-          "name": "Ingest Document",
+          "name": "Ingest PDF",
           "request": {
             "method": "POST",
             "header": [],
@@ -1855,6 +1933,26 @@
                   "key": "file",
                   "type": "file",
                   "src": ""
+                },
+                {
+                  "key": "conversation_id",
+                  "type": "text",
+                  "value": "{{conversation_id}}"
+                },
+                {
+                  "key": "thread_id",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "key": "create_new_thread",
+                  "type": "text",
+                  "value": "true"
+                },
+                {
+                  "key": "stream",
+                  "type": "text",
+                  "value": "false"
                 }
               ]
             }
@@ -1867,7 +1965,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/ingest/status/:task_id",
+              "raw": "{{baseUrl}}/api/rag/ingest/status/{{task_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1876,7 +1974,7 @@
                 "rag",
                 "ingest",
                 "status",
-                ":task_id"
+                "{{task_id}}"
               ]
             },
             "description": ""
@@ -1884,7 +1982,7 @@
           "response": []
         },
         {
-          "name": "RAG Chat",
+          "name": "RAG Chat (JSON)",
           "request": {
             "method": "POST",
             "header": [
@@ -1907,7 +2005,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Summarize document\",\n  \"thread_id\": \"{{thread_id}}\"\n}",
+              "raw": "{\n  \"message\": \"Summarize the document\",\n  \"thread_id\": \"{{thread_id}}\",\n  \"conversation_id\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1918,12 +2016,57 @@
           "response": []
         },
         {
+          "name": "RAG Chat (multipart + optional audio)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rag/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rag",
+                "chat"
+              ]
+            },
+            "description": "Either JSON or multipart/form-data works for this endpoint.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "message",
+                  "type": "text",
+                  "value": "Summarize the document"
+                },
+                {
+                  "key": "thread_id",
+                  "type": "text",
+                  "value": "{{thread_id}}"
+                },
+                {
+                  "key": "conversation_id",
+                  "type": "text",
+                  "value": "{{conversation_id}}"
+                },
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Download Markdown",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/download-markdown/:thread_id",
+              "raw": "{{baseUrl}}/api/rag/download-markdown/{{thread_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1931,7 +2074,7 @@
                 "api",
                 "rag",
                 "download-markdown",
-                ":thread_id"
+                "{{thread_id}}"
               ]
             },
             "description": ""
@@ -1944,7 +2087,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/status/:thread_id",
+              "raw": "{{baseUrl}}/api/rag/thread/status/{{thread_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1953,7 +2096,7 @@
                 "rag",
                 "thread",
                 "status",
-                ":thread_id"
+                "{{thread_id}}"
               ]
             },
             "description": ""
@@ -1966,7 +2109,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/document/:thread_id",
+              "raw": "{{baseUrl}}/api/rag/thread/document/{{thread_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1975,7 +2118,7 @@
                 "rag",
                 "thread",
                 "document",
-                ":thread_id"
+                "{{thread_id}}"
               ]
             },
             "description": ""
@@ -2046,7 +2189,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"prompt\": \"You are a helpful tutor\"\n}",
+              "raw": "{\n  \"prompt\": \"You are a helpful tutor.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2082,7 +2225,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/:thread_id/finalized-lesson",
+              "raw": "{{baseUrl}}/api/rag/thread/{{thread_id}}/finalized-lesson",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2090,7 +2233,7 @@
                 "api",
                 "rag",
                 "thread",
-                ":thread_id",
+                "{{thread_id}}",
                 "finalized-lesson"
               ]
             },
@@ -2099,7 +2242,7 @@
           "response": []
         },
         {
-          "name": "Update Finalized Lesson",
+          "name": "Save Finalized Lesson",
           "request": {
             "method": "PUT",
             "header": [
@@ -2109,7 +2252,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/:thread_id/finalized-lesson",
+              "raw": "{{baseUrl}}/api/rag/thread/{{thread_id}}/finalized-lesson",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2117,14 +2260,14 @@
                 "api",
                 "rag",
                 "thread",
-                ":thread_id",
+                "{{thread_id}}",
                 "finalized-lesson"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_text\": \"...\"\n}",
+              "raw": "{\n  \"last_lesson_text\": \"Final lesson text\",\n  \"lesson_title\": \"Lesson title\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2135,7 +2278,7 @@
           "response": []
         },
         {
-          "name": "Update Lesson Finalized Flag",
+          "name": "Set Lesson Finalized Flag",
           "request": {
             "method": "PUT",
             "header": [
@@ -2145,7 +2288,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/:thread_id/lesson-finalized",
+              "raw": "{{baseUrl}}/api/rag/thread/{{thread_id}}/lesson-finalized",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2153,14 +2296,14 @@
                 "api",
                 "rag",
                 "thread",
-                ":thread_id",
+                "{{thread_id}}",
                 "lesson-finalized"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lesson_finalized\": true\n}",
+              "raw": "{\n  \"finalized\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2171,12 +2314,12 @@
           "response": []
         },
         {
-          "name": "Conversation Thread Mapping",
+          "name": "Get Thread by Conversation",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/conversation/:conversation_id/thread",
+              "raw": "{{baseUrl}}/api/rag/conversation/{{conversation_id}}/thread",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2184,7 +2327,7 @@
                 "api",
                 "rag",
                 "conversation",
-                ":conversation_id",
+                "{{conversation_id}}",
                 "thread"
               ]
             },
@@ -2193,12 +2336,12 @@
           "response": []
         },
         {
-          "name": "Conversation PDF Info",
+          "name": "Get PDF Info by Conversation",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/conversation/:conversation_id/pdf-info",
+              "raw": "{{baseUrl}}/api/rag/conversation/{{conversation_id}}/pdf-info",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2206,7 +2349,7 @@
                 "api",
                 "rag",
                 "conversation",
-                ":conversation_id",
+                "{{conversation_id}}",
                 "pdf-info"
               ]
             },
@@ -2220,7 +2363,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rag/thread/:thread_id",
+              "raw": "{{baseUrl}}/api/rag/thread/{{thread_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2228,7 +2371,7 @@
                 "api",
                 "rag",
                 "thread",
-                ":thread_id"
+                "{{thread_id}}"
               ]
             },
             "description": ""
@@ -2240,25 +2383,6 @@
     {
       "name": "Subscription (/subscription)",
       "item": [
-        {
-          "name": "Subscription Settings",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/subscription/settings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "subscription",
-                "settings"
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
         {
           "name": "Plans",
           "request": {
@@ -2281,7 +2405,7 @@
           "response": []
         },
         {
-          "name": "Create Checkout",
+          "name": "Create Checkout Session",
           "request": {
             "method": "POST",
             "header": [
@@ -2305,7 +2429,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tier\": \"pro\",\n  \"coupon_code\": \"DISCOUNT10\"\n}",
+              "raw": "{\n  \"plan_id\": \"pro\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2316,7 +2440,42 @@
           "response": []
         },
         {
-          "name": "Checkout Success",
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/api/subscription/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "api",
+                "subscription",
+                "cancel"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"immediate\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout Success Redirect",
           "request": {
             "method": "GET",
             "header": [],
@@ -2328,27 +2487,12 @@
               "path": [
                 "subscription",
                 "checkout-success"
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Cancel Subscription",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/subscription/api/subscription/cancel",
-              "host": [
-                "{{baseUrl}}"
               ],
-              "path": [
-                "subscription",
-                "api",
-                "subscription",
-                "cancel"
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "cs_test_123"
+                }
               ]
             },
             "description": ""
@@ -2376,7 +2520,7 @@
                 "stripe"
               ]
             },
-            "description": "",
+            "description": "Usually called by Stripe, not manually.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"checkout.session.completed\"\n}",
@@ -2425,7 +2569,7 @@
           "response": []
         },
         {
-          "name": "List Coupons",
+          "name": "List Coupons (admin)",
           "request": {
             "method": "GET",
             "header": [],
@@ -2446,7 +2590,7 @@
           "response": []
         },
         {
-          "name": "Create Coupon",
+          "name": "Create Coupon (admin)",
           "request": {
             "method": "POST",
             "header": [
@@ -2470,7 +2614,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"DISCOUNT10\",\n  \"discount_type\": \"percentage\",\n  \"discount_value\": 10\n}",
+              "raw": "{\n  \"code\": \"DISCOUNT10\",\n  \"subscription_tier\": \"pro\",\n  \"description\": \"10% off\",\n  \"max_uses\": 100,\n  \"expires_at\": \"2026-12-31T23:59:59Z\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2545,7 +2689,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"new_user\",\n  \"useremail\": \"new@example.com\",\n  \"password\": \"secure_password\",\n  \"role\": \"student\"\n}",
+              "raw": "{\n  \"username\": \"new_user\",\n  \"useremail\": \"new@example.com\",\n  \"password\": \"secure_password\",\n  \"role\": \"student\",\n  \"class_standard\": \"10th\",\n  \"medium\": \"English\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2561,14 +2705,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/:user_id",
+              "raw": "{{baseUrl}}/admin/users/{{user_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "users",
-                ":user_id"
+                "{{user_id}}"
               ]
             },
             "description": ""
@@ -2586,20 +2730,20 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/:user_id",
+              "raw": "{{baseUrl}}/admin/users/{{user_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "users",
-                ":user_id"
+                "{{user_id}}"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"updated_user\",\n  \"role\": \"teacher\"\n}",
+              "raw": "{\n  \"username\": \"updated_user\",\n  \"role\": \"teacher\",\n  \"class_standard\": \"10th\",\n  \"medium\": \"English\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2615,14 +2759,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/:user_id",
+              "raw": "{{baseUrl}}/admin/users/{{user_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "users",
-                ":user_id"
+                "{{user_id}}"
               ]
             },
             "description": ""
@@ -2640,21 +2784,21 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/:user_id/change-password",
+              "raw": "{{baseUrl}}/admin/users/{{user_id}}/change-password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "users",
-                ":user_id",
+                "{{user_id}}",
                 "change-password"
               ]
             },
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"new_password\": \"new_secure_password\"\n}",
+              "raw": "{\n  \"password\": \"new_secure_password\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2680,16 +2824,16 @@
               ],
               "query": [
                 {
+                  "key": "user_id",
+                  "value": ""
+                },
+                {
                   "key": "page",
                   "value": "1"
                 },
                 {
                   "key": "per_page",
                   "value": "20"
-                },
-                {
-                  "key": "search",
-                  "value": ""
                 }
               ]
             },
@@ -2703,14 +2847,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/documents/:doc_id",
+              "raw": "{{baseUrl}}/admin/documents/{{doc_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "documents",
-                ":doc_id"
+                "{{doc_id}}"
               ]
             },
             "description": ""
@@ -2761,7 +2905,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"prompt\": \"You are a helpful tutor\"\n}",
+              "raw": "{\n  \"prompt\": \"You are a helpful tutor.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2792,7 +2936,7 @@
           "response": []
         },
         {
-          "name": "Get Coupons",
+          "name": "List Coupons",
           "request": {
             "method": "GET",
             "header": [],
@@ -2833,7 +2977,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"DISCOUNT10\",\n  \"discount_type\": \"percentage\",\n  \"discount_value\": 10\n}",
+              "raw": "{\n  \"code\": \"DISCOUNT10\",\n  \"subscription_tier\": \"pro\",\n  \"description\": \"Admin coupon\",\n  \"max_uses\": 100,\n  \"expires_at\": \"2026-12-31T23:59:59\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2849,14 +2993,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/coupons/:coupon_id",
+              "raw": "{{baseUrl}}/admin/coupons/{{coupon_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "coupons",
-                ":coupon_id"
+                "{{coupon_id}}"
               ]
             },
             "description": ""
@@ -2864,7 +3008,7 @@
           "response": []
         },
         {
-          "name": "Get Lessons",
+          "name": "List Lessons",
           "request": {
             "method": "GET",
             "header": [],
@@ -2878,6 +3022,10 @@
                 "lessons"
               ],
               "query": [
+                {
+                  "key": "teacher_id",
+                  "value": ""
+                },
                 {
                   "key": "page",
                   "value": "1"
@@ -2898,14 +3046,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/lessons/:lesson_id",
+              "raw": "{{baseUrl}}/admin/lessons/{{lesson_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "lessons",
-                ":lesson_id"
+                "{{lesson_id}}"
               ]
             },
             "description": ""
@@ -2936,7 +3084,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacher_id\": 2,\n  \"title\": \"Lesson Title\",\n  \"content\": \"...\"\n}",
+              "raw": "{\n  \"teacher_id\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2947,7 +3095,7 @@
           "response": []
         },
         {
-          "name": "Get LLM Provider Setting",
+          "name": "Get LLM Provider",
           "request": {
             "method": "GET",
             "header": [],
@@ -2967,7 +3115,7 @@
           "response": []
         },
         {
-          "name": "Update LLM Provider Setting",
+          "name": "Set LLM Provider",
           "request": {
             "method": "POST",
             "header": [
@@ -2990,7 +3138,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"provider\": \"openai\"\n}",
+              "raw": "{\n  \"provider\": \"OPENAI\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3044,7 +3192,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"model\": \"gpt-4o-mini\"\n}",
+              "raw": "{\n  \"active_provider\": \"OPENAI\",\n  \"openai_default_model\": \"gpt-4o-mini\",\n  \"groq_default_model\": \"llama-3.1-8b-instant\",\n  \"openai_allow_user_model_selection\": true,\n  \"groq_allow_user_model_selection\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3075,7 +3223,7 @@
           "response": []
         },
         {
-          "name": "Update User Model Settings",
+          "name": "Set User Model",
           "request": {
             "method": "PUT",
             "header": [
@@ -3098,7 +3246,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"default_model\": \"gpt-4o-mini\"\n}",
+              "raw": "{\n  \"model_id\": \"gpt-4o-mini\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3114,7 +3262,7 @@
       "name": "API Key (/api-key)",
       "item": [
         {
-          "name": "Set/Update API Key",
+          "name": "Update API Key",
           "request": {
             "method": "POST",
             "header": [
@@ -3136,7 +3284,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"provider\": \"openai\",\n  \"api_key\": \"sk-xxxxx\"\n}",
+              "raw": "{\n  \"api_key\": \"sk-xxxxx\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3147,7 +3295,7 @@
           "response": []
         },
         {
-          "name": "Set/Update API Key (alias)",
+          "name": "Update API Key (alias)",
           "request": {
             "method": "POST",
             "header": [
@@ -3169,7 +3317,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"provider\": \"openai\",\n  \"api_key\": \"sk-xxxxx\"\n}",
+              "raw": "{\n  \"api_key\": \"sk-xxxxx\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3180,7 +3328,7 @@
           "response": []
         },
         {
-          "name": "Get API Key Status",
+          "name": "API Key Status",
           "request": {
             "method": "GET",
             "header": [],
@@ -3199,7 +3347,7 @@
           "response": []
         },
         {
-          "name": "Get API Key Status (alias)",
+          "name": "API Key Status (alias)",
           "request": {
             "method": "GET",
             "header": [],
@@ -3245,7 +3393,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"feedback\": \"Great experience!\",\n  \"suggestions\": \"Add more features\"\n}",
+              "raw": "{\n  \"rating\": 8,\n  \"message\": \"Great experience\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3256,7 +3404,7 @@
           "response": []
         },
         {
-          "name": "Get Survey Responses",
+          "name": "Survey Responses",
           "request": {
             "method": "GET",
             "header": [],
