@@ -474,7 +474,24 @@
               }
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create conversation status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = data.conversation_id || data.id;",
+                  "if (id) {",
+                  "  pm.collectionVariables.set('conversation_id', String(id));",
+                  "  console.log('Saved conversation_id:', id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Conversations",
@@ -492,7 +509,25 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get conversations status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const convs = data.conversations || [];",
+                  "if (Array.isArray(convs) && convs.length && (convs[0].id || convs[0].conversation_id)) {",
+                  "  const id = convs[0].id || convs[0].conversation_id;",
+                  "  pm.collectionVariables.set('conversation_id', String(id));",
+                  "  console.log('Updated conversation_id from list:', id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Messages",
@@ -674,7 +709,21 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('User info status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = data.user && data.user.id;",
+                  "if (id) { pm.collectionVariables.set('user_id', String(id)); console.log('Updated user_id from user_info:', id); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "STT",
@@ -1124,7 +1173,24 @@
               }
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create lesson status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = data.lesson_id || data.id || (data.lesson && (data.lesson.id || data.lesson.lesson_id));",
+                  "if (id) {",
+                  "  pm.collectionVariables.set('lesson_id', String(id));",
+                  "  console.log('Saved lesson_id:', id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Ask Question General",
@@ -1178,7 +1244,25 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('My lessons status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const lessons = data.lessons || [];",
+                  "if (Array.isArray(lessons) && lessons.length && (lessons[0].id || lessons[0].lesson_id)) {",
+                  "  const id = lessons[0].id || lessons[0].lesson_id;",
+                  "  pm.collectionVariables.set('lesson_id', String(id));",
+                  "  console.log('Updated lesson_id from my_lessons:', id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Browse Lessons",
@@ -1957,7 +2041,22 @@
               ]
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ingest PDF accepted', function () { pm.expect(pm.response.code).to.be.oneOf([200,202]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "if (data.thread_id) { pm.collectionVariables.set('thread_id', String(data.thread_id)); console.log('Saved thread_id:', data.thread_id); }",
+                  "if (data.conversation_id) { pm.collectionVariables.set('conversation_id', String(data.conversation_id)); console.log('Saved conversation_id:', data.conversation_id); }",
+                  "if (data.task_id) { pm.collectionVariables.set('task_id', String(data.task_id)); console.log('Saved task_id:', data.task_id); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Ingest Status",
@@ -1979,7 +2078,21 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ingest status endpoint response', function () { pm.expect(pm.response.code).to.be.oneOf([200,202]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "if (data.thread_id) { pm.collectionVariables.set('thread_id', String(data.thread_id)); }",
+                  "if (data.conversation_id) { pm.collectionVariables.set('conversation_id', String(data.conversation_id)); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "RAG Chat (JSON)",
@@ -2143,7 +2256,26 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('List threads status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const threads = data.threads || [];",
+                  "if (Array.isArray(threads) && threads.length) {",
+                  "  const t = threads[0].thread_id || threads[0].id;",
+                  "  if (t) { pm.collectionVariables.set('thread_id', String(t)); console.log('Updated thread_id from list:', t); }",
+                  "  const c = threads[0].conversation_id;",
+                  "  if (c) { pm.collectionVariables.set('conversation_id', String(c)); console.log('Updated conversation_id from threads:', c); }",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Prompt",
@@ -2333,7 +2465,21 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get thread by conversation status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const t = data.thread_id || (data.thread && data.thread.thread_id);",
+                  "if (t) { pm.collectionVariables.set('thread_id', String(t)); console.log('Saved thread_id from conversation lookup:', t); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get PDF Info by Conversation",
@@ -2622,7 +2768,21 @@
               }
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create coupon admin status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = (data.coupon && data.coupon.id) || data.coupon_id;",
+                  "if (id) { pm.collectionVariables.set('coupon_id', String(id)); console.log('Saved coupon_id:', id); }"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -2664,7 +2824,21 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('List users status', function () { pm.expect(pm.response.code).to.eq(200); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const users = data.users || [];",
+                  "if (Array.isArray(users) && users.length && users[0].id) { pm.collectionVariables.set('user_id', String(users[0].id)); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create User",
@@ -2697,7 +2871,21 @@
               }
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create user status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = data.user_id || (data.user && data.user.id);",
+                  "if (id) { pm.collectionVariables.set('user_id', String(id)); console.log('Saved user_id:', id); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get User",
@@ -2985,7 +3173,21 @@
               }
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create coupon status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const id = (data.coupon && data.coupon.id) || data.coupon_id;",
+                  "if (id) { pm.collectionVariables.set('coupon_id', String(id)); console.log('Saved coupon_id:', id); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Coupon",
@@ -3462,6 +3664,21 @@
           "response": []
         }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Keep request URL variables synced with collection variables",
+          "['conversation_id','lesson_id','thread_id','user_id','coupon_id','doc_id','task_id'].forEach(function(k){",
+          "  const v = pm.collectionVariables.get(k);",
+          "  if (v !== undefined && v !== null && String(v).length) pm.variables.set(k, String(v));",
+          "});"
+        ]
+      }
     }
   ]
 }
