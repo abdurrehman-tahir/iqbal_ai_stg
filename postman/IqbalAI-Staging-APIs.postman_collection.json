@@ -36,6 +36,10 @@
     {
       "key": "task_id",
       "value": "sample-task-id"
+    },
+    {
+      "key": "token",
+      "value": ""
     }
   ],
   "item": [
@@ -336,6 +340,120 @@
                 }
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Email Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register_email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register_email"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Register Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Login Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Logout (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot_password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot_password"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset_password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset_password"
+              ]
+            },
+            "description": ""
           },
           "response": []
         }
@@ -784,6 +902,112 @@
                 }
               }
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Root Index",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Teacher Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teacher-dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "teacher-dashboard"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Student Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/student-dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "student-dashboard"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Teacher Chatbot Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chatbot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chatbot"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Chatbot Update Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chatbot_update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chatbot_update"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Token Usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/get_token_usage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "get_token_usage"
+              ]
+            },
+            "description": ""
           },
           "response": []
         }
@@ -1987,6 +2211,26 @@
             "description": ""
           },
           "response": []
+        },
+        {
+          "name": "Lessons Chatbot Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lessons/chatbot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lessons",
+                "chatbot"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
         }
       ]
     },
@@ -2523,6 +2767,26 @@
             "description": ""
           },
           "response": []
+        },
+        {
+          "name": "RAG Chatbot Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rag/chatbot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rag",
+                "chatbot"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
         }
       ]
     },
@@ -2733,7 +2997,23 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const coupons = data.coupons || [];",
+                  "if (Array.isArray(coupons) && coupons.length && coupons[0].id) {",
+                  "  pm.collectionVariables.set('coupon_id', String(coupons[0].id));",
+                  "  console.log('Updated coupon_id from subscription list_coupons:', coupons[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create Coupon (admin)",
@@ -2783,6 +3063,25 @@
               }
             }
           ]
+        },
+        {
+          "name": "Subscription Settings Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "settings"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
         }
       ]
     },
@@ -3027,7 +3326,23 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const docs = data.documents || [];",
+                  "if (Array.isArray(docs) && docs.length && docs[0].id) {",
+                  "  pm.collectionVariables.set('doc_id', String(docs[0].id));",
+                  "  console.log('Updated doc_id from list_documents:', docs[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Document",
@@ -3140,7 +3455,23 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const coupons = data.coupons || [];",
+                  "if (Array.isArray(coupons) && coupons.length && coupons[0].id) {",
+                  "  pm.collectionVariables.set('coupon_id', String(coupons[0].id));",
+                  "  console.log('Updated coupon_id from admin list_coupons:', coupons[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create Coupon",
@@ -3240,7 +3571,23 @@
             },
             "description": ""
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let data = {}; try { data = pm.response.json(); } catch (e) {}",
+                  "const lessons = data.lessons || [];",
+                  "if (Array.isArray(lessons) && lessons.length && lessons[0].id) {",
+                  "  pm.collectionVariables.set('lesson_id', String(lessons[0].id));",
+                  "  console.log('Updated lesson_id from admin list_lessons:', lessons[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Lesson",
@@ -3457,6 +3804,24 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
         }
       ]
     },
@@ -3662,6 +4027,83 @@
             "description": ""
           },
           "response": []
+        },
+        {
+          "name": "Survey Preflight",
+          "request": {
+            "method": "OPTIONS",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Survey Responses Preflight",
+          "request": {
+            "method": "OPTIONS",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/responses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "responses"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Survey Status Preflight",
+          "request": {
+            "method": "OPTIONS",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/check_survey_status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "check_survey_status"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Survey Preflight",
+          "request": {
+            "method": "OPTIONS",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reset_survey",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reset_survey"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
         }
       ]
     }
@@ -3673,7 +4115,7 @@
         "type": "text/javascript",
         "exec": [
           "// Keep request URL variables synced with collection variables",
-          "['conversation_id','lesson_id','thread_id','user_id','coupon_id','doc_id','task_id'].forEach(function(k){",
+          "['conversation_id','lesson_id','thread_id','user_id','coupon_id','doc_id','task_id','token'].forEach(function(k){",
           "  const v = pm.collectionVariables.get(k);",
           "  if (v !== undefined && v !== null && String(v).length) pm.variables.set(k, String(v));",
           "});"
