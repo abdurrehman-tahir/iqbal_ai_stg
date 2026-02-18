@@ -4415,14 +4415,14 @@
                     "ingest"
                   ]
                 },
-                "description": "",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
                     {
                       "key": "file",
                       "type": "file",
-                      "src": "{{doc_path}}"
+                      "src": ""
                     },
                     {
                       "key": "conversation_id",
@@ -4918,14 +4918,14 @@
                     "ingest"
                   ]
                 },
-                "description": "",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
                     {
                       "key": "file",
                       "type": "file",
-                      "src": "{{doc_path}}"
+                      "src": ""
                     },
                     {
                       "key": "conversation_id",
@@ -5371,14 +5371,14 @@
                     "ingest"
                   ]
                 },
-                "description": "",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
                     {
                       "key": "file",
                       "type": "file",
-                      "src": "{{doc_path}}"
+                      "src": ""
                     },
                     {
                       "key": "conversation_id",
@@ -5589,14 +5589,14 @@
                     "ingest"
                   ]
                 },
-                "description": "",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
                     {
                       "key": "file",
                       "type": "file",
-                      "src": "{{doc_path}}"
+                      "src": ""
                     },
                     {
                       "key": "conversation_id",
@@ -5905,14 +5905,14 @@
                     "ingest"
                   ]
                 },
-                "description": "",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
                     {
                       "key": "file",
                       "type": "file",
-                      "src": "{{doc_path}}"
+                      "src": ""
                     },
                     {
                       "key": "conversation_id",
