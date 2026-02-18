@@ -1,0 +1,17 @@
+[
+  {
+    "case_id": "T7-001",
+    "scenario_tag": "rag_quality_benchmark",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "/Users/<YOU>/Downloads/10MB.pdf",
+    "messages": [
+      "What is the main thesis of this document?"
+    ],
+    "expected_contains": [
+      "thesis",
+      "evidence",
+      "conclusion"
+    ]
+  }
+]

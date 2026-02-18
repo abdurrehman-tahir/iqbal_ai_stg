@@ -1,0 +1,10 @@
+[
+  {
+    "case_id": "T6-001",
+    "scenario_tag": "repeated_ingest",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "/Users/<YOU>/Downloads/10MB.pdf",
+    "repeat_ingest": 25
+  }
+]

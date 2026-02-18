@@ -1,0 +1,20 @@
+[
+  {
+    "case_id": "T2-001",
+    "scenario_tag": "teacher_full_flow",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "/Users/<YOU>/Downloads/10MB.pdf",
+    "messages": [
+      "Create a structured lesson plan (objectives, key concepts, examples).",
+      "Add 5 exercises with answers.",
+      "Finalize lesson"
+    ],
+    "save_lesson": true,
+    "focus_area": "Physics",
+    "grade_level": "10",
+    "lesson_title": "Physics — Motion (Postman)",
+    "lesson_summary": "Auto-generated from PDF using RAG",
+    "lesson_content_fallback": "Fallback lesson content if finalized text is empty"
+  }
+]

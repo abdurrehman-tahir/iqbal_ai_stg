@@ -1,0 +1,16 @@
+[
+  {
+    "case_id": "T5-001",
+    "scenario_tag": "student_sequential_chat",
+    "useremail": "student01@staging.local",
+    "password": "Passw0rd!1",
+    "lesson_id": 123,
+    "allow_rag": false,
+    "messages": [
+      "I'm confused. Explain the lesson in very simple words.",
+      "Now explain the same concept with an analogy.",
+      "Test me with 5 questions and correct me.",
+      "Summarize what I should remember for an exam."
+    ]
+  }
+]
