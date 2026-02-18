@@ -2301,7 +2301,7 @@
                 "ingest"
               ]
             },
-            "description": "CLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+            "description": "Runner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -2336,6 +2336,23 @@
           "response": [],
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fp = pm.collectionVariables.get('doc_path') || pm.environment.get('doc_path') || pm.variables.get('doc_path');",
+                  "if (!fp) { throw new Error('doc_path is empty. Provide doc_path in iteration data or environment.'); }",
+                  "if (!String(fp).toLowerCase().endsWith('.pdf')) { throw new Error('doc_path must point to a .pdf file'); }",
+                  "const fd = pm.request.body && pm.request.body.formdata;",
+                  "if (fd) {",
+                  "  const filePart = fd.find(p => p && p.key === 'file');",
+                  "  if (filePart) { filePart.src = String(fp); filePart.disabled = false; }",
+                  "}",
+                  "pm.collectionVariables.set('doc_path', String(fp));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -2344,7 +2361,8 @@
                   "let data = {}; try { data = pm.response.json(); } catch (e) {}",
                   "if (data.thread_id) { pm.collectionVariables.set('thread_id', String(data.thread_id)); console.log('Saved thread_id:', data.thread_id); }",
                   "if (data.conversation_id) { pm.collectionVariables.set('conversation_id', String(data.conversation_id)); console.log('Saved conversation_id:', data.conversation_id); }",
-                  "if (data.task_id) { pm.collectionVariables.set('task_id', String(data.task_id)); console.log('Saved task_id:', data.task_id); }"
+                  "if (data.task_id) { pm.collectionVariables.set('task_id', String(data.task_id)); console.log('Saved task_id:', data.task_id); }",
+                  "if (pm.response.code >= 400) { postman.setNextRequest(null); }"
                 ]
               }
             }
@@ -4415,7 +4433,7 @@
                     "ingest"
                   ]
                 },
-                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nRunner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
@@ -4440,6 +4458,23 @@
               "response": [],
               "event": [
                 {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const fp = pm.collectionVariables.get('doc_path') || pm.environment.get('doc_path') || pm.variables.get('doc_path');",
+                      "if (!fp) { throw new Error('doc_path is empty. Provide doc_path in iteration data or environment.'); }",
+                      "if (!String(fp).toLowerCase().endsWith('.pdf')) { throw new Error('doc_path must point to a .pdf file'); }",
+                      "const fd = pm.request.body && pm.request.body.formdata;",
+                      "if (fd) {",
+                      "  const filePart = fd.find(p => p && p.key === 'file');",
+                      "  if (filePart) { filePart.src = String(fp); filePart.disabled = false; }",
+                      "}",
+                      "pm.collectionVariables.set('doc_path', String(fp));"
+                    ]
+                  }
+                },
+                {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
@@ -4450,7 +4485,8 @@
                       "let rep=[]; try{rep=JSON.parse(pm.collectionVariables.get('scenario_report')||'[]')}catch(e){rep=[]}",
                       "rep.push({ts:new Date().toISOString(),req:pm.info.requestName,code:pm.response.code,rt:pm.response.responseTime,ok:pm.response.code<400,case_id:pm.collectionVariables.get('case_id')||''});",
                       "pm.collectionVariables.set('scenario_report', JSON.stringify(rep));",
-                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT2 Teacher Full Flow - Poll Ingest Status'); }"
+                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT2 Teacher Full Flow - Poll Ingest Status'); }",
+                      "if (pm.response.code >= 400) { postman.setNextRequest(null); }"
                     ]
                   }
                 }
@@ -4918,7 +4954,7 @@
                     "ingest"
                   ]
                 },
-                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nRunner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
@@ -4943,6 +4979,23 @@
               "response": [],
               "event": [
                 {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const fp = pm.collectionVariables.get('doc_path') || pm.environment.get('doc_path') || pm.variables.get('doc_path');",
+                      "if (!fp) { throw new Error('doc_path is empty. Provide doc_path in iteration data or environment.'); }",
+                      "if (!String(fp).toLowerCase().endsWith('.pdf')) { throw new Error('doc_path must point to a .pdf file'); }",
+                      "const fd = pm.request.body && pm.request.body.formdata;",
+                      "if (fd) {",
+                      "  const filePart = fd.find(p => p && p.key === 'file');",
+                      "  if (filePart) { filePart.src = String(fp); filePart.disabled = false; }",
+                      "}",
+                      "pm.collectionVariables.set('doc_path', String(fp));"
+                    ]
+                  }
+                },
+                {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
@@ -4953,7 +5006,8 @@
                       "let rep=[]; try{rep=JSON.parse(pm.collectionVariables.get('scenario_report')||'[]')}catch(e){rep=[]}",
                       "rep.push({ts:new Date().toISOString(),req:pm.info.requestName,code:pm.response.code,rt:pm.response.responseTime,ok:pm.response.code<400,case_id:pm.collectionVariables.get('case_id')||''});",
                       "pm.collectionVariables.set('scenario_report', JSON.stringify(rep));",
-                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT4 Teacher Sequential RAG - Poll Ingest Status'); }"
+                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT4 Teacher Sequential RAG - Poll Ingest Status'); }",
+                      "if (pm.response.code >= 400) { postman.setNextRequest(null); }"
                     ]
                   }
                 }
@@ -5371,7 +5425,7 @@
                     "ingest"
                   ]
                 },
-                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nRunner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
@@ -5589,7 +5643,7 @@
                     "ingest"
                   ]
                 },
-                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nRunner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
@@ -5614,6 +5668,23 @@
               "response": [],
               "event": [
                 {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const fp = pm.collectionVariables.get('doc_path') || pm.environment.get('doc_path') || pm.variables.get('doc_path');",
+                      "if (!fp) { throw new Error('doc_path is empty. Provide doc_path in iteration data or environment.'); }",
+                      "if (!String(fp).toLowerCase().endsWith('.pdf')) { throw new Error('doc_path must point to a .pdf file'); }",
+                      "const fd = pm.request.body && pm.request.body.formdata;",
+                      "if (fd) {",
+                      "  const filePart = fd.find(p => p && p.key === 'file');",
+                      "  if (filePart) { filePart.src = String(fp); filePart.disabled = false; }",
+                      "}",
+                      "pm.collectionVariables.set('doc_path', String(fp));"
+                    ]
+                  }
+                },
+                {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
@@ -5624,7 +5695,8 @@
                       "let rep=[]; try{rep=JSON.parse(pm.collectionVariables.get('scenario_report')||'[]')}catch(e){rep=[]}",
                       "rep.push({ts:new Date().toISOString(),req:pm.info.requestName,code:pm.response.code,rt:pm.response.responseTime,ok:pm.response.code<400,case_id:pm.collectionVariables.get('case_id')||''});",
                       "pm.collectionVariables.set('scenario_report', JSON.stringify(rep));",
-                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT7 RAG Quality Benchmark - Poll Ingest Status'); }"
+                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT7 RAG Quality Benchmark - Poll Ingest Status'); }",
+                      "if (pm.response.code >= 400) { postman.setNextRequest(null); }"
                     ]
                   }
                 }
@@ -5905,7 +5977,7 @@
                     "ingest"
                   ]
                 },
-                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
+                "description": "NOTE: For UI runs, manually select the file in the form-data file picker (file field). Path variables are not reliably resolved into file attachments by Postman UI. Use doc_path for external runners/metadata only.\n\nRunner/CLI path mode: file src is bound to {{doc_path}} from iteration data. If your desktop runner blocks local file reads, set an allowed working directory or use manual file picker.\n\nCLI variant: file src is bound to {{doc_path}} from iteration data. Ensure doc_path points to a readable local PDF path for the runner process.",
                 "body": {
                   "mode": "formdata",
                   "formdata": [
@@ -5930,6 +6002,23 @@
               "response": [],
               "event": [
                 {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const fp = pm.collectionVariables.get('doc_path') || pm.environment.get('doc_path') || pm.variables.get('doc_path');",
+                      "if (!fp) { throw new Error('doc_path is empty. Provide doc_path in iteration data or environment.'); }",
+                      "if (!String(fp).toLowerCase().endsWith('.pdf')) { throw new Error('doc_path must point to a .pdf file'); }",
+                      "const fd = pm.request.body && pm.request.body.formdata;",
+                      "if (fd) {",
+                      "  const filePart = fd.find(p => p && p.key === 'file');",
+                      "  if (filePart) { filePart.src = String(fp); filePart.disabled = false; }",
+                      "}",
+                      "pm.collectionVariables.set('doc_path', String(fp));"
+                    ]
+                  }
+                },
+                {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
@@ -5940,7 +6029,8 @@
                       "let rep=[]; try{rep=JSON.parse(pm.collectionVariables.get('scenario_report')||'[]')}catch(e){rep=[]}",
                       "rep.push({ts:new Date().toISOString(),req:pm.info.requestName,code:pm.response.code,rt:pm.response.responseTime,ok:pm.response.code<400,case_id:pm.collectionVariables.get('case_id')||''});",
                       "pm.collectionVariables.set('scenario_report', JSON.stringify(rep));",
-                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT8 Teacher Full Flow Concurrent - Poll Ingest Status'); }"
+                      "if (d.status==='processing' && d.task_id) { postman.setNextRequest('LT8 Teacher Full Flow Concurrent - Poll Ingest Status'); }",
+                      "if (pm.response.code >= 400) { postman.setNextRequest(null); }"
                     ]
                   }
                 }
