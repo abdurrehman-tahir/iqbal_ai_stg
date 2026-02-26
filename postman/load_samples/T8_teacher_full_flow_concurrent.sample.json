@@ -1,0 +1,36 @@
+[
+  {
+    "case_id": "T8-001",
+    "scenario_tag": "teacher_full_flow_concurrent",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "postman/load_assets/10MB.pdf",
+    "messages": [
+      "Summarize the document in 5 bullet points.",
+      "Create a lesson outline and assessment plan.",
+      "Finalize lesson"
+    ],
+    "save_lesson": true,
+    "focus_area": "Physics",
+    "grade_level": "10",
+    "lesson_title": "Concurrent Lesson 01",
+    "lesson_summary": "Concurrent E2E flow test"
+  },
+  {
+    "case_id": "T8-002",
+    "scenario_tag": "teacher_full_flow_concurrent",
+    "useremail": "teacher02@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "postman/load_assets/10MB.pdf",
+    "messages": [
+      "Summarize the document in 5 bullet points.",
+      "Create a lesson outline and assessment plan.",
+      "Finalize lesson"
+    ],
+    "save_lesson": true,
+    "focus_area": "Physics",
+    "grade_level": "10",
+    "lesson_title": "Concurrent Lesson 02",
+    "lesson_summary": "Concurrent E2E flow test"
+  }
+]

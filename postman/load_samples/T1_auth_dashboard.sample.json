@@ -1,0 +1,14 @@
+[
+  {
+    "case_id": "T1-001",
+    "scenario_tag": "auth_dashboard",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1"
+  },
+  {
+    "case_id": "T1-002",
+    "scenario_tag": "auth_dashboard",
+    "useremail": "student01@staging.local",
+    "password": "Passw0rd!1"
+  }
+]

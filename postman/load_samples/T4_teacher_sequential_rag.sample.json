@@ -1,0 +1,16 @@
+[
+  {
+    "case_id": "T4-001",
+    "scenario_tag": "teacher_sequential_rag",
+    "useremail": "teacher01@staging.local",
+    "password": "Passw0rd!1",
+    "doc_path": "postman/load_assets/10MB.pdf",
+    "messages": [
+      "Summarize the document.",
+      "Explain section 1 in depth.",
+      "Provide 3 real-world examples.",
+      "Now create 10 MCQs with answers.",
+      "Finally, give a one-page revision sheet."
+    ]
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "case_id": "T3-001",
+    "scenario_tag": "student_lesson_chat_concurrent",
+    "useremail": "student01@staging.local",
+    "password": "Passw0rd!1",
+    "lesson_id": 123,
+    "allow_rag": false,
+    "messages": [
+      "Explain the main concept.",
+      "Give a simple example.",
+      "Ask me 3 quiz questions."
+    ]
+  },
+  {
+    "case_id": "T3-002",
+    "scenario_tag": "student_lesson_chat_concurrent",
+    "useremail": "student02@staging.local",
+    "password": "Passw0rd!1",
+    "lesson_id": 123,
+    "allow_rag": false,
+    "messages": [
+      "Summarize the lesson.",
+      "What are the key formulas?",
+      "Give a real-world application."
+    ]
+  }
+]
