@@ -3389,6 +3389,7 @@
       </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/voice-stream-client.js') }}"></script>
     <script>
       // Chat History Management
       let chatHistory = [];
@@ -3401,8 +3402,59 @@
       let audioChunks = [];
       let mediaStream = null;
       let ttsAudio = null;
+      let voiceClient = null;
+      let voiceStreamEnabled = false;
+      let voiceMode = 'classic'; // classic | live
+      const TEACHER_VOICE_MODE_KEY = 'teacher_voice_mode';
       let currentChatMenuId = null;
       let lessonCreationCompleted = false; // Flag to track if first lesson is created
+
+      // ════════════════════════════════════════════════════════════════════════════════
+      function isLiveVoiceActive() {
+        return !!voiceStreamEnabled && voiceMode === 'live';
+      }
+
+      function setTeacherVoiceMode(mode) {
+        voiceMode = (mode === 'live') ? 'live' : 'classic';
+        try { localStorage.setItem(TEACHER_VOICE_MODE_KEY, voiceMode); } catch (e) {}
+        fetch('/api/voice/preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ mode: voiceMode })
+        }).catch(function () {});
+      }
+
+      function getTeacherVoiceMode() {
+        try {
+          const v = localStorage.getItem(TEACHER_VOICE_MODE_KEY);
+          return (v === 'live') ? 'live' : 'classic';
+        } catch (e) {
+          return 'classic';
+        }
+      }
+
+      function initTeacherVoiceModeToggle() {
+        const speakerBtn = document.getElementById('speakerBtn');
+        if (!speakerBtn || !speakerBtn.parentElement) return;
+        const btn = document.createElement('button');
+        btn.id = 'voiceModeToggle';
+        btn.className = 'ml-2 px-2 py-1 text-xs rounded border border-gray-300 text-gray-700';
+        const render = function () {
+          btn.textContent = (isLiveVoiceActive() ? 'Live Voice' : 'Classic Voice');
+          btn.title = isLiveVoiceActive() ? 'Switch to classic voice mode' : 'Switch to live voice mode';
+        };
+        btn.onclick = function () {
+          if (!voiceStreamEnabled) {
+            showToast('Live voice is disabled by server config.', 'info');
+            return;
+          }
+          setTeacherVoiceMode(voiceMode === 'live' ? 'classic' : 'live');
+          render();
+        };
+        speakerBtn.parentElement.appendChild(btn);
+        render();
+      }
 
       // ════════════════════════════════════════════════════════════════════════════════
       // 🔐 CHAT LIFECYCLE SYSTEM - CORE SPECIFICATION
@@ -3758,6 +3810,21 @@
           }
         }
         speechSynthesis = window.speechSynthesis;
+        if (window.VoiceStreamClient) {
+          voiceClient = new window.VoiceStreamClient();
+        }
+        setTeacherVoiceMode(getTeacherVoiceMode());
+        fetch('/api/voice/session', { method: 'GET', credentials: 'include' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (d && d.success) {
+              voiceStreamEnabled = !!d.voice_stream_enabled;
+              if (d.preferred_mode === 'live' || d.preferred_mode === 'classic') setTeacherVoiceMode(d.preferred_mode);
+              if (!voiceStreamEnabled) setTeacherVoiceMode('classic');
+            }
+          })
+          .catch(function () {});
+        initTeacherVoiceModeToggle();
 
         // Focus on input
         textarea.focus();
@@ -6956,11 +7023,19 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         const voiceText = document.getElementById('voiceText');
         const textarea = document.getElementById('messageInput');
 
+        if (voiceClient && !voiceClient.canStartListening()) {
+          voiceClient.recordEvent('mic_blocked_during_non_idle', { state: voiceClient.state });
+          showToast('Microphone is unavailable while speaking/processing.', 'warning');
+          return;
+        }
+
         if (!isListening) {
           try {
-            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const constraints = voiceClient ? voiceClient.getUserMediaConstraints() : { audio: true };
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
             mediaRecorder = new MediaRecorder(mediaStream);
+            if (voiceClient) voiceClient.transition('LISTENING');
             audioChunks = [];
             mediaRecorder.ondataavailable = function (e) {
               if (e.data.size > 0) audioChunks.push(e.data);
@@ -6978,20 +7053,26 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               }
               const blob = new Blob(audioChunks, { type: mimeType });
               if (voiceText) voiceText.textContent = 'Transcribing...';
+              if (voiceClient) voiceClient.transition('TRANSCRIBING');
+              if (voiceClient) voiceClient.startTimer('stt_roundtrip_ms');
               try {
                 const fd = new FormData();
                 fd.append('audio', blob, 'audio.webm');
+                if (voiceClient) voiceClient.transition('SENDING');
                 const res = await fetch('/api/stt', { method: 'POST', credentials: 'include', body: fd });
                 const data = await res.json().catch(function () { return {}; });
                 if (res.ok && data.text) {
+                  if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: true });
                   if (textarea) { textarea.value = data.text; updateSendButton(); }
                   if (voiceText) voiceText.textContent = data.text;
                   showToast('Voice transcribed', 'success');
                 } else {
+                  if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: false });
                   if (voiceText) voiceText.textContent = data.error || 'Transcription failed';
                   showToast(data.error || 'Transcription failed', 'error');
                 }
               } catch (err) {
+                if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: false, error: 'network' });
                 console.error('STT error:', err);
                 if (voiceText) voiceText.textContent = 'Network error';
                 showToast('Could not reach speech service', 'error');
@@ -6999,6 +7080,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               if (voiceStatus) voiceStatus.classList.add('hidden');
               if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone"></i>'; micBtn.classList.remove('active'); }
               isListening = false;
+              if (voiceClient) voiceClient.transition('IDLE');
             };
             mediaRecorder.start();
             isListening = true;
@@ -7029,6 +7111,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         }
         if (!mediaRecorder || mediaRecorder.state === 'inactive') {
           isListening = false;
+          if (voiceClient && voiceClient.state !== 'SPEAKING') voiceClient.transition('IDLE');
           const voiceStatus = document.getElementById('voiceStatus');
           const micBtn = document.getElementById('micBtn');
           if (voiceStatus) voiceStatus.classList.add('hidden');
@@ -7039,6 +7122,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
       // Toggle text-to-speech: use backend /api/tts (gTTS) and play returned audio
       async function toggleTextToSpeech() {
         const speakerBtn = document.getElementById('speakerBtn');
+        const micBtn = document.getElementById('micBtn');
 
         if (isTextToSpeechActive) {
           if (ttsAudio) {
@@ -7049,6 +7133,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
           speakerBtn.classList.remove('active');
           speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
           return;
         }
 
@@ -7062,6 +7147,11 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         speakerBtn.classList.add('active');
         speakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
         isTextToSpeechActive = true;
+        if (voiceClient) {
+          voiceClient.recordEvent('recording_force_stopped_for_tts');
+          voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+          voiceClient.startTimer('tts_playback_ms');
+        }
 
         try {
           const res = await fetch('/api/tts', {
@@ -7087,6 +7177,8 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             speakerBtn.classList.remove('active');
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             isTextToSpeechActive = false;
+            if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+            if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: true });
           };
           ttsAudio.onerror = function () {
             URL.revokeObjectURL(url);
@@ -7095,6 +7187,8 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             isTextToSpeechActive = false;
             showToast('Playback failed', 'error');
+            if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+            if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: false, error: 'playback' });
           };
           ttsAudio.play();
         } catch (err) {
@@ -7103,6 +7197,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
           speakerBtn.classList.remove('active');
           speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
         }
       }
 
@@ -7555,21 +7650,27 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             thread_id: window.currentRAGThreadId || null,
             conversation_id: window.currentRAGConversationId || (typeof currentChatId === 'number' ? currentChatId : null)
           };
-          const response = await fetch('/api/rag/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(body),
-            signal: controller.signal
-          });
+
+          let data = null;
+          if (isLiveVoiceActive() && voiceClient && typeof voiceClient.sendTurn === 'function' && body.thread_id) {
+            data = await voiceClient.sendTurn({ message: body.message, thread_id: body.thread_id, tts: false });
+          } else {
+            const response = await fetch('/api/rag/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify(body),
+              signal: controller.signal
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(function() { return {}; });
+              addAssistantMessage('Error: ' + (err.error || 'Failed to get response from the server.'));
+              return;
+            }
+            data = await response.json();
+          }
           clearTimeout(timeoutId);
 
-          if (!response.ok) {
-            const err = await response.json().catch(function() { return {}; });
-            addAssistantMessage('Error: ' + (err.error || 'Failed to get response from the server.'));
-            return;
-          }
-          const data = await response.json();
           if (data.error) {
             addAssistantMessage('Error: ' + data.error);
             return;
@@ -7587,9 +7688,13 @@ Last Updated: ${new Date().toLocaleDateString()}`;
           if (window.currentRAGThreadId && aiResponse && (aiResponse.length > 200 || (aiResponse.indexOf('#') !== -1 && aiResponse.indexOf('\n\n') !== -1))) {
             currentLessonMarkdown = aiResponse;
           }
-          var formatted = (typeof TeacherChatFormatter !== 'undefined' && TeacherChatFormatter.formatChatResponse)
-            ? TeacherChatFormatter.formatChatResponse(aiResponse) : escapeHtml(aiResponse);
-          addAssistantMessage(formatted);
+          if (isLiveVoiceActive() && voiceClient && typeof voiceClient.streamAssistantText === 'function') {
+            await addStreamingAssistantMessage(aiResponse);
+          } else {
+            var formatted = (typeof TeacherChatFormatter !== 'undefined' && TeacherChatFormatter.formatChatResponse)
+              ? TeacherChatFormatter.formatChatResponse(aiResponse) : escapeHtml(aiResponse);
+            addAssistantMessage(formatted);
+          }
         } catch (e) {
           const isAbort = e && (e.name === 'AbortError' || e.message === 'The user aborted a request.');
           addAssistantMessage(isAbort
@@ -7727,6 +7832,42 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               .catch(function () {});
           }
         }
+      }
+
+      function addStreamingAssistantMessage(rawText) {
+        return new Promise(function (resolve) {
+          const chatMessages = document.getElementById('chatMessages');
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'chat-message assistant animate-fade-in';
+          var imgUrl = "{{ url_for('static', filename='teacher/assets/midLogo.png') }}";
+          messageDiv.innerHTML = `
+        <div class="chat-message-avatar">
+          <img src="${imgUrl}" alt="AI Assistant" onerror="this.onerror=null; this.src=''; this.innerHTML='<i class=\\'fas fa-graduation-cap\\'></i>'; this.classList.add('flex', 'items-center', 'justify-center')">
+        </div>
+        <div class="chat-message-content markdown-content"></div>
+      `;
+          chatMessages.appendChild(messageDiv);
+          const contentEl = messageDiv.querySelector('.chat-message-content');
+          let assembled = '';
+
+          voiceClient.streamAssistantText(rawText, function (chunk) {
+            assembled += chunk || '';
+            contentEl.textContent = assembled;
+            scrollToBottom();
+          }, function () {
+            var formatted = (typeof TeacherChatFormatter !== 'undefined' && TeacherChatFormatter.formatChatResponse)
+              ? TeacherChatFormatter.formatChatResponse(assembled) : escapeHtml(assembled);
+            contentEl.innerHTML = formatted;
+            if (typeof TeacherChatFormatter !== 'undefined' && TeacherChatFormatter.processRenderedContent) {
+              TeacherChatFormatter.processRenderedContent(contentEl);
+            }
+            appendMessageToChat(currentChatId, 'assistant', formatted);
+            resolve();
+          }).catch(function () {
+            addAssistantMessage(rawText);
+            resolve();
+          });
+        });
       }
 
       // Generate AI response

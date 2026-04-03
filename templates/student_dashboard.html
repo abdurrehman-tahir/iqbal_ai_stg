@@ -3218,6 +3218,7 @@
       </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/voice-stream-client.js') }}"></script>
     <script>
       // Chat History Management
       let chatHistory = [];
@@ -3226,6 +3227,10 @@
       let speechRecognition = null;
       let speechSynthesis = null;
       let isTextToSpeechActive = false;
+      let voiceClient = null;
+      let voiceStreamEnabled = false;
+      let voiceMode = 'classic'; // classic | live
+      const STUDENT_VOICE_MODE_KEY = 'student_voice_mode';
       let currentChatMenuId = null;
       let lessonCreationCompleted = false; // Flag to track if first lesson is created
       const STUDENT_ACTIVE_VIEW_KEY = 'Student_active_view';
@@ -3248,6 +3253,51 @@
         } catch (e) {
           return 'lessons';
         }
+      }
+
+      function isLiveVoiceActive() {
+        return !!voiceStreamEnabled && voiceMode === 'live';
+      }
+
+      function setStudentVoiceMode(mode) {
+        voiceMode = (mode === 'live') ? 'live' : 'classic';
+        try { localStorage.setItem(STUDENT_VOICE_MODE_KEY, voiceMode); } catch (e) {}
+        fetch('/api/voice/preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ mode: voiceMode })
+        }).catch(function () {});
+      }
+
+      function getStudentVoiceMode() {
+        try {
+          const v = localStorage.getItem(STUDENT_VOICE_MODE_KEY);
+          return (v === 'live') ? 'live' : 'classic';
+        } catch (e) {
+          return 'classic';
+        }
+      }
+
+      function initStudentVoiceModeToggle() {
+        const speakerBtn = document.getElementById('speakerBtn');
+        if (!speakerBtn || !speakerBtn.parentElement) return;
+        const btn = document.createElement('button');
+        btn.id = 'studentVoiceModeToggle';
+        btn.className = 'ml-2 px-2 py-1 text-xs rounded border border-gray-300 text-gray-700';
+        const render = function () {
+          btn.textContent = (isLiveVoiceActive() ? 'Live Voice' : 'Classic Voice');
+        };
+        btn.onclick = function () {
+          if (!voiceStreamEnabled) {
+            showToast('Live voice is disabled by server config.', 'info');
+            return;
+          }
+          setStudentVoiceMode(voiceMode === 'live' ? 'classic' : 'live');
+          render();
+        };
+        speakerBtn.parentElement.appendChild(btn);
+        render();
       }
 
       function getStudentWelcomeMessageHtml() {
@@ -3503,6 +3553,22 @@
           updateSendButton();
         });
 
+        if (window.VoiceStreamClient) {
+          voiceClient = new window.VoiceStreamClient();
+        }
+        setStudentVoiceMode(getStudentVoiceMode());
+        fetch('/api/voice/session', { method: 'GET', credentials: 'include' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (d && d.success) {
+              voiceStreamEnabled = !!d.voice_stream_enabled;
+              if (d.preferred_mode === 'live' || d.preferred_mode === 'classic') setStudentVoiceMode(d.preferred_mode);
+              if (!voiceStreamEnabled) setStudentVoiceMode('classic');
+            }
+          })
+          .catch(function () {});
+        initStudentVoiceModeToggle();
+
         // Initialize speech recognition if available
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3522,7 +3588,7 @@
 
           speechRecognition.onend = function () {
             if (isListening) {
-              speechRecognition.start();
+              if (!voiceClient || voiceClient.state === 'LISTENING') speechRecognition.start();
             } else {
               document.getElementById('voiceStatus').classList.add('hidden');
               document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone"></i>';
@@ -5850,12 +5916,19 @@
 
       // Toggle voice input
       function toggleVoiceInput() {
+        if (voiceClient && !voiceClient.canStartListening()) {
+          voiceClient.recordEvent('mic_blocked_during_non_idle', { state: voiceClient.state });
+          showToast('Microphone is unavailable while speaking/processing.', 'warning');
+          return;
+        }
         if (!speechRecognition) {
           alert('Speech recognition is not supported in your browser.');
           return;
         }
 
         if (!isListening) {
+          if (voiceClient) voiceClient.transition('LISTENING');
+          if (voiceClient) voiceClient.startTimer('student_listen_to_stop_ms');
           speechRecognition.start();
           isListening = true;
           document.getElementById('voiceStatus').classList.remove('hidden');
@@ -5871,12 +5944,15 @@
         if (speechRecognition && isListening) {
           speechRecognition.stop();
           isListening = false;
+          if (voiceClient) voiceClient.endTimer('student_listen_to_stop_ms', { stopped: true });
+          if (voiceClient && voiceClient.state !== 'SPEAKING') voiceClient.transition('IDLE');
         }
       }
 
       // Toggle text-to-speech
       function toggleTextToSpeech() {
         const speakerBtn = document.getElementById('speakerBtn');
+        const micBtn = document.getElementById('micBtn');
 
         if (isTextToSpeechActive) {
           // Deactivate
@@ -5886,6 +5962,8 @@
             speechSynthesis.cancel();
           }
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+          if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: false, reason: 'manual_stop' });
         } else {
           // Activate
           speakerBtn.classList.add('active');
@@ -5894,6 +5972,11 @@
           // Read last assistant message
           const lastAssistantMessage = document.querySelector('.chat-message.assistant:last-child .chat-message-content');
           if (lastAssistantMessage) {
+            if (voiceClient) {
+              voiceClient.recordEvent('recording_force_stopped_for_tts');
+              voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+              voiceClient.startTimer('tts_playback_ms');
+            }
             const utterance = new SpeechSynthesisUtterance(lastAssistantMessage.textContent.replace(/<[^>]*>/g, ''));
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
@@ -5903,6 +5986,8 @@
               speakerBtn.classList.remove('active');
               speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
               isTextToSpeechActive = false;
+              if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+              if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: true });
             };
 
             speechSynthesis.speak(utterance);
@@ -6190,6 +6275,11 @@
 
       // Add assistant message on RIGHT side
       function addAssistantMessage(message) {
+        const raw = String(message || '');
+        if (isLiveVoiceActive() && voiceClient && typeof voiceClient.streamAssistantText === 'function' && raw.indexOf('<') === -1) {
+          addStreamingAssistantMessage(raw);
+          return;
+        }
         const chatMessages = document.getElementById('chatMessages');
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message assistant animate-fade-in';
@@ -6219,6 +6309,41 @@
           const utterance = new SpeechSynthesisUtterance(message.replace(/<[^>]*>/g, ''));
           speechSynthesis.speak(utterance);
         }
+      }
+
+      function addStreamingAssistantMessage(rawText) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message assistant animate-fade-in';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-message-content';
+        contentDiv.textContent = '';
+        messageDiv.innerHTML = `
+        <div class="chat-message-avatar">
+          <img src="{{ url_for('static', filename='teacher/assets/midLogo.png') }}" alt="AI Assistant" onerror="this.onerror=null; this.src=''; this.innerHTML='<i class=\\'fas fa-graduation-cap\\'></i>'; this.classList.add('flex', 'items-center', 'justify-center')">
+        </div>
+      `;
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        let assembled = '';
+
+        voiceClient.streamAssistantText(rawText, function (chunk) {
+          assembled += chunk || '';
+          contentDiv.textContent = assembled;
+          requestAnimationFrame(() => scrollToBottom());
+        }, function () {
+          contentDiv.innerHTML = formatRichContent(assembled);
+          applyRenderedFormatting(contentDiv);
+          appendMessageToChat(currentChatId, 'assistant', assembled);
+          if (isTextToSpeechActive && speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(assembled);
+            speechSynthesis.speak(utterance);
+          }
+        }).catch(function () {
+          contentDiv.innerHTML = formatRichContent(rawText);
+          applyRenderedFormatting(contentDiv);
+          appendMessageToChat(currentChatId, 'assistant', rawText);
+        });
       }
 
       // Generate AI response
