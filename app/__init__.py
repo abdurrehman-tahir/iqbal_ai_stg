@@ -277,6 +277,7 @@ def create_app():
     from app.routes.subscription import bp as subscription_bp
     from app.routes.admin_routes import bp as admin_bp
     from app.routes.load_test_routes import bp as load_test_bp
+    from app.routes.voice_routes import bp as voice_bp
 
     # Register blueprints with appropriate prefixes
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -290,6 +291,7 @@ def create_app():
     app.register_blueprint(subscription_bp, url_prefix='/subscription')
     app.register_blueprint(admin_bp)
     app.register_blueprint(load_test_bp, url_prefix='/api/load-test')
+    app.register_blueprint(voice_bp, url_prefix='/api/voice')
     
     # Serve teacher dashboard static assets (css, js, assets from teacherfrontend)
     from flask import send_from_directory
@@ -337,4 +339,3 @@ def create_app():
         print("Celery disabled for ingestion (USE_CELERY_FOR_INGESTION=false). PDF ingestion will run in-process.")
 
     return app
-
