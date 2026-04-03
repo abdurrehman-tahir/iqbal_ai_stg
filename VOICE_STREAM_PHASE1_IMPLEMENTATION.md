@@ -127,6 +127,13 @@ Examples:
 
 ## Remaining work checklist (what is left)
 
+### Completion snapshot (current)
+- ✅ Shared state machine + anti-feedback guards in teacher/student UIs
+- ✅ Voice session + preferences + telemetry + SSE + unified turn endpoints
+- ✅ Live/Classic toggle in both dashboards with backend preference sync
+- ✅ Server-side voice orchestrator scaffold with STT/TTS/text helpers
+- ❗ Not yet complete: full duplex audio transport, persistence parity, automated tests, and production hardening
+
 ### 1) Wire SSE streaming into actual UI response rendering (High)
 - Current status: teacher and student dashboards now have live-mode incremental assistant rendering paths.
 - Remaining: extend streaming path coverage to every assistant response variant (including rich HTML/system blocks where streaming is intentionally bypassed).
