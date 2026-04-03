@@ -3218,6 +3218,7 @@
       </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/voice-stream-client.js') }}"></script>
     <script>
       // Chat History Management
       let chatHistory = [];
@@ -3226,6 +3227,7 @@
       let speechRecognition = null;
       let speechSynthesis = null;
       let isTextToSpeechActive = false;
+      let voiceClient = null;
       let currentChatMenuId = null;
       let lessonCreationCompleted = false; // Flag to track if first lesson is created
       const STUDENT_ACTIVE_VIEW_KEY = 'Student_active_view';
@@ -3503,6 +3505,10 @@
           updateSendButton();
         });
 
+        if (window.VoiceStreamClient) {
+          voiceClient = new window.VoiceStreamClient();
+        }
+
         // Initialize speech recognition if available
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3522,7 +3528,7 @@
 
           speechRecognition.onend = function () {
             if (isListening) {
-              speechRecognition.start();
+              if (!voiceClient || voiceClient.state === 'LISTENING') speechRecognition.start();
             } else {
               document.getElementById('voiceStatus').classList.add('hidden');
               document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone"></i>';
@@ -5850,12 +5856,17 @@
 
       // Toggle voice input
       function toggleVoiceInput() {
+        if (voiceClient && !voiceClient.canStartListening()) {
+          showToast('Microphone is unavailable while speaking/processing.', 'warning');
+          return;
+        }
         if (!speechRecognition) {
           alert('Speech recognition is not supported in your browser.');
           return;
         }
 
         if (!isListening) {
+          if (voiceClient) voiceClient.transition('LISTENING');
           speechRecognition.start();
           isListening = true;
           document.getElementById('voiceStatus').classList.remove('hidden');
@@ -5871,12 +5882,14 @@
         if (speechRecognition && isListening) {
           speechRecognition.stop();
           isListening = false;
+          if (voiceClient && voiceClient.state !== 'SPEAKING') voiceClient.transition('IDLE');
         }
       }
 
       // Toggle text-to-speech
       function toggleTextToSpeech() {
         const speakerBtn = document.getElementById('speakerBtn');
+        const micBtn = document.getElementById('micBtn');
 
         if (isTextToSpeechActive) {
           // Deactivate
@@ -5886,6 +5899,7 @@
             speechSynthesis.cancel();
           }
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
         } else {
           // Activate
           speakerBtn.classList.add('active');
@@ -5894,6 +5908,9 @@
           // Read last assistant message
           const lastAssistantMessage = document.querySelector('.chat-message.assistant:last-child .chat-message-content');
           if (lastAssistantMessage) {
+            if (voiceClient) {
+              voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+            }
             const utterance = new SpeechSynthesisUtterance(lastAssistantMessage.textContent.replace(/<[^>]*>/g, ''));
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
@@ -5903,6 +5920,7 @@
               speakerBtn.classList.remove('active');
               speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
               isTextToSpeechActive = false;
+              if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
             };
 
             speechSynthesis.speak(utterance);

@@ -3389,6 +3389,7 @@
       </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/voice-stream-client.js') }}"></script>
     <script>
       // Chat History Management
       let chatHistory = [];
@@ -3401,6 +3402,7 @@
       let audioChunks = [];
       let mediaStream = null;
       let ttsAudio = null;
+      let voiceClient = null;
       let currentChatMenuId = null;
       let lessonCreationCompleted = false; // Flag to track if first lesson is created
 
@@ -3758,6 +3760,9 @@
           }
         }
         speechSynthesis = window.speechSynthesis;
+        if (window.VoiceStreamClient) {
+          voiceClient = new window.VoiceStreamClient();
+        }
 
         // Focus on input
         textarea.focus();
@@ -6956,11 +6961,18 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         const voiceText = document.getElementById('voiceText');
         const textarea = document.getElementById('messageInput');
 
+        if (voiceClient && !voiceClient.canStartListening()) {
+          showToast('Microphone is unavailable while speaking/processing.', 'warning');
+          return;
+        }
+
         if (!isListening) {
           try {
-            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const constraints = voiceClient ? voiceClient.getUserMediaConstraints() : { audio: true };
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
             mediaRecorder = new MediaRecorder(mediaStream);
+            if (voiceClient) voiceClient.transition('LISTENING');
             audioChunks = [];
             mediaRecorder.ondataavailable = function (e) {
               if (e.data.size > 0) audioChunks.push(e.data);
@@ -6978,9 +6990,11 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               }
               const blob = new Blob(audioChunks, { type: mimeType });
               if (voiceText) voiceText.textContent = 'Transcribing...';
+              if (voiceClient) voiceClient.transition('TRANSCRIBING');
               try {
                 const fd = new FormData();
                 fd.append('audio', blob, 'audio.webm');
+                if (voiceClient) voiceClient.transition('SENDING');
                 const res = await fetch('/api/stt', { method: 'POST', credentials: 'include', body: fd });
                 const data = await res.json().catch(function () { return {}; });
                 if (res.ok && data.text) {
@@ -6999,6 +7013,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               if (voiceStatus) voiceStatus.classList.add('hidden');
               if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone"></i>'; micBtn.classList.remove('active'); }
               isListening = false;
+              if (voiceClient) voiceClient.transition('IDLE');
             };
             mediaRecorder.start();
             isListening = true;
@@ -7029,6 +7044,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         }
         if (!mediaRecorder || mediaRecorder.state === 'inactive') {
           isListening = false;
+          if (voiceClient && voiceClient.state !== 'SPEAKING') voiceClient.transition('IDLE');
           const voiceStatus = document.getElementById('voiceStatus');
           const micBtn = document.getElementById('micBtn');
           if (voiceStatus) voiceStatus.classList.add('hidden');
@@ -7039,6 +7055,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
       // Toggle text-to-speech: use backend /api/tts (gTTS) and play returned audio
       async function toggleTextToSpeech() {
         const speakerBtn = document.getElementById('speakerBtn');
+        const micBtn = document.getElementById('micBtn');
 
         if (isTextToSpeechActive) {
           if (ttsAudio) {
@@ -7049,6 +7066,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
           speakerBtn.classList.remove('active');
           speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
           return;
         }
 
@@ -7062,6 +7080,9 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         speakerBtn.classList.add('active');
         speakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
         isTextToSpeechActive = true;
+        if (voiceClient) {
+          voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+        }
 
         try {
           const res = await fetch('/api/tts', {
@@ -7087,6 +7108,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             speakerBtn.classList.remove('active');
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             isTextToSpeechActive = false;
+            if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
           };
           ttsAudio.onerror = function () {
             URL.revokeObjectURL(url);
@@ -7095,6 +7117,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             isTextToSpeechActive = false;
             showToast('Playback failed', 'error');
+            if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
           };
           ttsAudio.play();
         } catch (err) {
@@ -7103,6 +7126,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
           speakerBtn.classList.remove('active');
           speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
           isTextToSpeechActive = false;
+          if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
         }
       }
 

@@ -165,6 +165,13 @@ class Config:
     RAG_INGEST_STANDARD_STREAM_TIMEOUT = int(os.getenv('RAG_INGEST_STANDARD_STREAM_TIMEOUT', '600'))
     RAG_INGEST_LARGE_STREAM_TIMEOUT = int(os.getenv('RAG_INGEST_LARGE_STREAM_TIMEOUT', '1800'))
 
+    # Voice streaming (Phase 1 rollout)
+    VOICE_STREAM_ENABLED = os.getenv('VOICE_STREAM_ENABLED', 'false').lower() in ('true', '1', 'yes')
+    VOICE_BARGE_IN_ENABLED = os.getenv('VOICE_BARGE_IN_ENABLED', 'true').lower() in ('true', '1', 'yes')
+    VOICE_PROVIDER = os.getenv('VOICE_PROVIDER', 'internal')  # internal | pipecat
+    VOICE_MODE_DEFAULT_MODEL = os.getenv('VOICE_MODE_DEFAULT_MODEL', '')
+    VOICE_MAX_ASSISTANT_CHARS = int(os.getenv('VOICE_MAX_ASSISTANT_CHARS', '900'))
+
     # -------------------
     # RAG load-test flags
     # -------------------
