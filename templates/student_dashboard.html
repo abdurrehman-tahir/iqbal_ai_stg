@@ -3262,6 +3262,12 @@
       function setStudentVoiceMode(mode) {
         voiceMode = (mode === 'live') ? 'live' : 'classic';
         try { localStorage.setItem(STUDENT_VOICE_MODE_KEY, voiceMode); } catch (e) {}
+        fetch('/api/voice/preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ mode: voiceMode })
+        }).catch(function () {});
       }
 
       function getStudentVoiceMode() {
@@ -3556,6 +3562,7 @@
           .then(function (d) {
             if (d && d.success) {
               voiceStreamEnabled = !!d.voice_stream_enabled;
+              if (d.preferred_mode === 'live' || d.preferred_mode === 'classic') setStudentVoiceMode(d.preferred_mode);
               if (!voiceStreamEnabled) setStudentVoiceMode('classic');
             }
           })

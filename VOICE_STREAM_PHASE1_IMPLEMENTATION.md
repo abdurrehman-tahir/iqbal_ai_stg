@@ -143,8 +143,8 @@ Examples:
 - Effort: High.
 
 ### 4) End-to-end feature-flag rollout path in UI (Medium)
-- Current status: teacher/student read `/api/voice/session`; both dashboards now expose a visible Classic/Live mode toggle and teacher live mode calls unified `/api/voice/turn` when possible.
-- Remaining: polish UX placement/wording and add persisted preference sync with backend user settings.
+- Current status: teacher/student read `/api/voice/session`; both dashboards now expose a visible Classic/Live mode toggle, sync preference via `/api/voice/preferences`, and teacher live mode calls unified `/api/voice/turn` when possible.
+- Remaining: polish UX placement/wording and move preference persistence from session-scoped storage to durable user settings table.
 - Effort: Medium.
 
 ### 5) Persist structured telemetry for analysis (Medium)

@@ -23,6 +23,9 @@ _RATE_MAX_EVENTS = 120
 def voice_session():
     """Return voice-session capabilities and server feature flags."""
     enabled = bool(current_app.config.get('VOICE_STREAM_ENABLED', False))
+    preferred_mode = str(session.get('voice_mode_preference') or 'classic').lower()
+    if preferred_mode not in {'classic', 'live'}:
+        preferred_mode = 'classic'
     return jsonify({
         'success': True,
         'voice_stream_enabled': enabled,
@@ -30,8 +33,29 @@ def voice_session():
         'barge_in_enabled': bool(current_app.config.get('VOICE_BARGE_IN_ENABLED', True)),
         'echo_cancellation_required': True,
         'provider': current_app.config.get('VOICE_PROVIDER', 'internal'),
-        'mode': 'live' if enabled else 'classic'
+        'mode': 'live' if enabled else 'classic',
+        'preferred_mode': preferred_mode
     })
+
+
+@bp.route('/preferences', methods=['GET', 'POST'])
+@login_required
+def voice_preferences():
+    """
+    Persist lightweight per-session voice preferences.
+    """
+    if request.method == 'GET':
+        preferred_mode = str(session.get('voice_mode_preference') or 'classic').lower()
+        if preferred_mode not in {'classic', 'live'}:
+            preferred_mode = 'classic'
+        return jsonify({'success': True, 'preferred_mode': preferred_mode})
+
+    payload = request.get_json(silent=True) or {}
+    mode = str(payload.get('mode') or '').lower()
+    if mode not in {'classic', 'live'}:
+        return jsonify({'success': False, 'error': 'Invalid mode'}), 400
+    session['voice_mode_preference'] = mode
+    return jsonify({'success': True, 'preferred_mode': mode})
 
 
 @bp.route('/state', methods=['POST'])
