@@ -17,13 +17,33 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Directory to store downloaded piper voice models
-_MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "piper_models")
+# Configurable via ENV variables (see app/config.py for docs):
+#   PIPER_VOICE      — voice model name (e.g. en_US-lessac-medium)
+#   PIPER_MODELS_DIR — directory to store downloaded voice models (default: project_root/piper_models)
 
-# Default voice model (English, high quality)
-_DEFAULT_VOICE = "en_US-lessac-medium"
-_DEFAULT_VOICE_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
-_DEFAULT_CONFIG_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+_MODELS_DIR = os.environ.get("PIPER_MODELS_DIR", "").strip() or os.path.join(_PROJECT_ROOT, "piper_models")
+
+# Voice model — parse name into HuggingFace download URLs
+_DEFAULT_VOICE = os.environ.get("PIPER_VOICE", "en_US-lessac-medium")
+
+def _voice_urls(voice_name: str):
+    """Build HuggingFace download URLs from a piper voice name like 'en_US-lessac-medium'."""
+    # Voice name format: {lang}_{REGION}-{speaker}-{quality}
+    # URL format: https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/{lang}/{lang}_{REGION}/{speaker}/{quality}/{voice_name}.onnx
+    parts = voice_name.split("-")
+    if len(parts) < 3:
+        # Fallback to hardcoded lessac URLs
+        base = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium"
+        return f"{base}/en_US-lessac-medium.onnx", f"{base}/en_US-lessac-medium.onnx.json"
+    lang_region = parts[0]  # e.g. en_US
+    lang = lang_region.split("_")[0]  # e.g. en
+    speaker = parts[1]  # e.g. lessac
+    quality = parts[2]  # e.g. medium
+    base = f"https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/{lang}/{lang_region}/{speaker}/{quality}"
+    return f"{base}/{voice_name}.onnx", f"{base}/{voice_name}.onnx.json"
+
+_DEFAULT_VOICE_URL, _DEFAULT_CONFIG_URL = _voice_urls(_DEFAULT_VOICE)
 
 _piper_voice = None
 _piper_available = None

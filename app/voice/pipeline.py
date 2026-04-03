@@ -9,6 +9,7 @@ that routes through the existing Flask API endpoints.
 import asyncio
 import json
 import logging
+import os
 from typing import Optional
 
 import aiohttp
@@ -18,6 +19,14 @@ logger = logging.getLogger(__name__)
 # Audio configuration
 SAMPLE_RATE = 16000
 CHANNELS = 1
+
+# Configurable via ENV variables (see app/config.py for docs):
+#   VOICE_CHAT_TTS_VOICE       — Kokoro voice name (e.g. af_heart, am_adam)
+#   VOICE_CHAT_LLM_TIMEOUT     — seconds to wait for LLM response
+#   VOICE_CHAT_TTS_SAMPLE_RATE — TTS output sample rate
+VOICE_CHAT_TTS_VOICE = os.environ.get("VOICE_CHAT_TTS_VOICE", "af_heart")
+VOICE_CHAT_LLM_TIMEOUT = int(os.environ.get("VOICE_CHAT_LLM_TIMEOUT", "120"))
+VOICE_CHAT_TTS_SAMPLE_RATE = int(os.environ.get("VOICE_CHAT_TTS_SAMPLE_RATE", "22050"))
 
 
 class VoicePipelineConfig:
@@ -78,7 +87,7 @@ async def call_llm_endpoint(config: VoicePipelineConfig, text: str) -> str:
                 config.llm_endpoint,
                 json=payload,
                 headers=headers,
-                timeout=aiohttp.ClientTimeout(total=120),
+                timeout=aiohttp.ClientTimeout(total=VOICE_CHAT_LLM_TIMEOUT),
             ) as resp:
                 if resp.status != 200:
                     error_text = await resp.text()
@@ -152,7 +161,7 @@ async def create_pipeline(config: VoicePipelineConfig):
     tts = None
     try:
         from pipecat.services.kokoro import KokoroTTSService
-        tts = KokoroTTSService(voice="af_heart")
+        tts = KokoroTTSService(voice=VOICE_CHAT_TTS_VOICE)
         logger.info("Using Kokoro TTS for voice pipeline")
     except (ImportError, Exception) as e:
         logger.warning("Kokoro TTS unavailable (%s), TTS will be disabled in voice chat", e)

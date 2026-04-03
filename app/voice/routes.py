@@ -70,6 +70,8 @@ def _handle_voice_session(ws):
         call_llm_endpoint,
         strip_html_tags,
         SAMPLE_RATE,
+        VOICE_CHAT_TTS_VOICE,
+        VOICE_CHAT_TTS_SAMPLE_RATE,
     )
 
     config = None
@@ -177,7 +179,7 @@ def _process_complete_utterance(ws, config, audio_bytes):
             _send_json(ws, {
                 "type": "audio",
                 "data": base64.b64encode(tts_audio).decode("ascii"),
-                "sample_rate": 22050,  # Kokoro/piper output rate
+                "sample_rate": VOICE_CHAT_TTS_SAMPLE_RATE,
             })
 
         _send_json(ws, {"type": "state", "state": "listening"})
@@ -224,7 +226,7 @@ def _synthesize_response(text: str) -> bytes:
         import asyncio
 
         async def _synth():
-            tts = KokoroTTSService(voice="af_heart")
+            tts = KokoroTTSService(voice=VOICE_CHAT_TTS_VOICE)
             # Kokoro returns audio frames; collect them
             frames = []
             async for frame in tts.run_tts(text):
