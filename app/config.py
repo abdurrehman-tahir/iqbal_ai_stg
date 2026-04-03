@@ -194,3 +194,30 @@ class Config:
     # Control embedding batch parallelism defaults.
     # NOTE: Actual effective default is also enforced in `app/utils/rag_service.py`.
     RAG_EMBED_PARALLEL_BATCHES_LOAD_TEST_DEFAULT = int(os.getenv('RAG_EMBED_PARALLEL_BATCHES_LOAD_TEST_DEFAULT', '1'))
+
+    # -------------------------------------------------------------------
+    # Voice / Speech Configuration (TTS, STT, STS)
+    # -------------------------------------------------------------------
+
+    # STT (Speech-to-Text) — faster-whisper
+    # Model size: tiny, base, small, medium, large-v3, large-v3-turbo
+    WHISPER_MODEL_SIZE = os.getenv('WHISPER_MODEL_SIZE', 'base')
+    # Device: cpu or cuda (cuda requires nvidia GPU + CUDA toolkit)
+    WHISPER_DEVICE = os.getenv('WHISPER_DEVICE', 'cpu')
+    # Compute type: int8 (fastest on CPU), float16 (GPU), float32 (most accurate)
+    WHISPER_COMPUTE_TYPE = os.getenv('WHISPER_COMPUTE_TYPE', 'int8')
+
+    # TTS (Text-to-Speech) — piper-tts
+    # Voice model name (e.g. en_US-lessac-medium, en_US-amy-medium, en_GB-alan-medium)
+    # Full list: https://rhasspy.github.io/piper-samples/
+    PIPER_VOICE = os.getenv('PIPER_VOICE', 'en_US-lessac-medium')
+    # Directory to store downloaded piper voice models
+    PIPER_MODELS_DIR = os.getenv('PIPER_MODELS_DIR', '')  # Empty = auto (project_root/piper_models)
+
+    # Voice Chat (Pipecat STS pipeline)
+    # Kokoro TTS voice for voice chat mode (e.g. af_heart, af_bella, am_adam)
+    VOICE_CHAT_TTS_VOICE = os.getenv('VOICE_CHAT_TTS_VOICE', 'af_heart')
+    # LLM request timeout in seconds for voice chat
+    VOICE_CHAT_LLM_TIMEOUT = int(os.getenv('VOICE_CHAT_LLM_TIMEOUT', '120'))
+    # TTS output sample rate (Kokoro=24000, piper=22050)
+    VOICE_CHAT_TTS_SAMPLE_RATE = int(os.getenv('VOICE_CHAT_TTS_SAMPLE_RATE', '22050'))

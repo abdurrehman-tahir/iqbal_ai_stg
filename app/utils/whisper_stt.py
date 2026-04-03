@@ -41,9 +41,13 @@ logger = logging.getLogger(__name__)
 #         return None
 # --- End old implementation ---
 
-WHISPER_MODEL_SIZE = "base"
-WHISPER_DEVICE = "cpu"
-WHISPER_COMPUTE_TYPE = "int8"
+# Configurable via ENV variables (see app/config.py for docs):
+#   WHISPER_MODEL_SIZE  — tiny, base, small, medium, large-v3, large-v3-turbo
+#   WHISPER_DEVICE      — cpu or cuda
+#   WHISPER_COMPUTE_TYPE — int8 (CPU), float16 (GPU), float32 (accurate)
+WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
+WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
+WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
 
 _whisper_model = None
 _whisper_available = None
