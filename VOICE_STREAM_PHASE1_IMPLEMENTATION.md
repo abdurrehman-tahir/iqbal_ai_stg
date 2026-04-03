@@ -12,6 +12,7 @@ Implement Phase 1 foundations for unified teacher+student voice behavior with an
 2. Added shared voice state-machine client script.
 3. Integrated shared state-machine protections into both teacher and student dashboards.
 4. Added configuration environment variables for feature rollout and tuning.
+5. Added Phase 1B hardening telemetry hooks (state-transition validation, invalid transition reporting, timing metrics).
 
 ## Step-by-step log
 1. Created `app/routes/voice_routes.py` with:
@@ -38,6 +39,16 @@ Implement Phase 1 foundations for unified teacher+student voice behavior with an
    - prevent recognition auto-restart unless state remains LISTENING
    - force stop listening before speaking and re-enable mic after TTS
 6. Added Phase 1 voice env vars in `app/config.py`.
+7. Hardened `voice-stream-client.js` with:
+   - allowed state-transition graph enforcement
+   - invalid-transition telemetry events
+   - client timers (`startTimer/endTimer`) for latency metrics
+8. Updated telemetry endpoint (`/api/voice/state`) to support event types:
+   - `transition`, `metric`, `event`, `invalid_transition`
+9. Added Phase 1B UI telemetry in teacher/student dashboards:
+   - mic-blocked events during non-idle states
+   - forced-stop events when speaking starts
+   - STT and TTS timing metrics
 
 ## Environment variables introduced
 - `VOICE_STREAM_ENABLED` (default: `false`)
@@ -69,6 +80,7 @@ Implement Phase 1 foundations for unified teacher+student voice behavior with an
 
 ## Notes / follow-up
 - This change adds Phase 1 scaffolding and UI safety controls.
+- This update also includes Phase 1B hardening telemetry and transition validation.
 - Next step is live websocket audio event loop and server-side streaming handlers behind the same feature flags.
 
 ## Screenshot note

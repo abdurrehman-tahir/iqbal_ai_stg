@@ -5857,6 +5857,7 @@
       // Toggle voice input
       function toggleVoiceInput() {
         if (voiceClient && !voiceClient.canStartListening()) {
+          voiceClient.recordEvent('mic_blocked_during_non_idle', { state: voiceClient.state });
           showToast('Microphone is unavailable while speaking/processing.', 'warning');
           return;
         }
@@ -5867,6 +5868,7 @@
 
         if (!isListening) {
           if (voiceClient) voiceClient.transition('LISTENING');
+          if (voiceClient) voiceClient.startTimer('student_listen_to_stop_ms');
           speechRecognition.start();
           isListening = true;
           document.getElementById('voiceStatus').classList.remove('hidden');
@@ -5882,6 +5884,7 @@
         if (speechRecognition && isListening) {
           speechRecognition.stop();
           isListening = false;
+          if (voiceClient) voiceClient.endTimer('student_listen_to_stop_ms', { stopped: true });
           if (voiceClient && voiceClient.state !== 'SPEAKING') voiceClient.transition('IDLE');
         }
       }
@@ -5900,6 +5903,7 @@
           }
           isTextToSpeechActive = false;
           if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+          if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: false, reason: 'manual_stop' });
         } else {
           // Activate
           speakerBtn.classList.add('active');
@@ -5909,7 +5913,9 @@
           const lastAssistantMessage = document.querySelector('.chat-message.assistant:last-child .chat-message-content');
           if (lastAssistantMessage) {
             if (voiceClient) {
+              voiceClient.recordEvent('recording_force_stopped_for_tts');
               voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+              voiceClient.startTimer('tts_playback_ms');
             }
             const utterance = new SpeechSynthesisUtterance(lastAssistantMessage.textContent.replace(/<[^>]*>/g, ''));
             utterance.rate = 1.0;
@@ -5921,6 +5927,7 @@
               speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
               isTextToSpeechActive = false;
               if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+              if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: true });
             };
 
             speechSynthesis.speak(utterance);

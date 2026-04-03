@@ -30,12 +30,19 @@ def voice_session():
 def track_voice_state():
     """Lightweight endpoint for client voice-state telemetry."""
     payload = request.get_json(silent=True) or {}
+    event_type = str(payload.get('event_type') or 'transition').lower()
     state = str(payload.get('state') or '').upper()
     prev_state = str(payload.get('prev_state') or '').upper()
+
+    if event_type not in {'transition', 'metric', 'event', 'invalid_transition'}:
+        return jsonify({'success': False, 'error': 'Invalid event type'}), 400
 
     if state not in _VALID_STATES:
         return jsonify({'success': False, 'error': 'Invalid state'}), 400
 
     user_id = session.get('user_id')
-    logger.info('voice_state_transition user_id=%s prev=%s next=%s meta=%s', user_id, prev_state, state, payload.get('meta'))
+    logger.info(
+        'voice_telemetry user_id=%s event=%s prev=%s next=%s meta=%s',
+        user_id, event_type, prev_state, state, payload.get('meta')
+    )
     return jsonify({'success': True})

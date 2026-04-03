@@ -6962,6 +6962,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         const textarea = document.getElementById('messageInput');
 
         if (voiceClient && !voiceClient.canStartListening()) {
+          voiceClient.recordEvent('mic_blocked_during_non_idle', { state: voiceClient.state });
           showToast('Microphone is unavailable while speaking/processing.', 'warning');
           return;
         }
@@ -6991,6 +6992,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
               const blob = new Blob(audioChunks, { type: mimeType });
               if (voiceText) voiceText.textContent = 'Transcribing...';
               if (voiceClient) voiceClient.transition('TRANSCRIBING');
+              if (voiceClient) voiceClient.startTimer('stt_roundtrip_ms');
               try {
                 const fd = new FormData();
                 fd.append('audio', blob, 'audio.webm');
@@ -6998,14 +7000,17 @@ Last Updated: ${new Date().toLocaleDateString()}`;
                 const res = await fetch('/api/stt', { method: 'POST', credentials: 'include', body: fd });
                 const data = await res.json().catch(function () { return {}; });
                 if (res.ok && data.text) {
+                  if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: true });
                   if (textarea) { textarea.value = data.text; updateSendButton(); }
                   if (voiceText) voiceText.textContent = data.text;
                   showToast('Voice transcribed', 'success');
                 } else {
+                  if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: false });
                   if (voiceText) voiceText.textContent = data.error || 'Transcription failed';
                   showToast(data.error || 'Transcription failed', 'error');
                 }
               } catch (err) {
+                if (voiceClient) voiceClient.endTimer('stt_roundtrip_ms', { ok: false, error: 'network' });
                 console.error('STT error:', err);
                 if (voiceText) voiceText.textContent = 'Network error';
                 showToast('Could not reach speech service', 'error');
@@ -7081,7 +7086,9 @@ Last Updated: ${new Date().toLocaleDateString()}`;
         speakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
         isTextToSpeechActive = true;
         if (voiceClient) {
+          voiceClient.recordEvent('recording_force_stopped_for_tts');
           voiceClient.forceStopForSpeaking(stopVoiceInput, function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+          voiceClient.startTimer('tts_playback_ms');
         }
 
         try {
@@ -7109,6 +7116,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             isTextToSpeechActive = false;
             if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+            if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: true });
           };
           ttsAudio.onerror = function () {
             URL.revokeObjectURL(url);
@@ -7118,6 +7126,7 @@ Last Updated: ${new Date().toLocaleDateString()}`;
             isTextToSpeechActive = false;
             showToast('Playback failed', 'error');
             if (voiceClient) voiceClient.finishSpeaking(function(disabled){ if (micBtn) micBtn.disabled = !!disabled; });
+            if (voiceClient) voiceClient.endTimer('tts_playback_ms', { ended: false, error: 'playback' });
           };
           ttsAudio.play();
         } catch (err) {
