@@ -833,15 +833,21 @@ def chat():
 
         user_id = session['user_id']
 
-        # If audio is sent (voice input), return error - RAG uses Groq/vLLM only, no OpenAI Whisper
-        audio_file = request.files.get('audio')
-        if audio_file and audio_file.filename:
-            return jsonify({
-                'error': 'Voice input is not supported for RAG chat. Please use text input.',
-                'code': 'VOICE_NOT_SUPPORTED'
-            }), 400
+        # --- Commented out: Early audio rejection that shadowed the transcription code below ---
+        # This block returned a 400 error for any audio upload, making the transcription
+        # code on lines below unreachable. Now that we use faster-whisper (local, free),
+        # there's no reason to block audio — the transcription feeds text into the same
+        # RAG pipeline that typed messages use.
+        #
+        # audio_file = request.files.get('audio')
+        # if audio_file and audio_file.filename:
+        #     return jsonify({
+        #         'error': 'Voice input is not supported for RAG chat. Please use text input.',
+        #         'code': 'VOICE_NOT_SUPPORTED'
+        #     }), 400
+        # --- End commented out block ---
 
-        # If audio is sent (voice input), transcribe using local Whisper base model
+        # If audio is sent (voice input), transcribe using local faster-whisper model
         audio_text = None
         tmp_path = None
         try:

@@ -11,40 +11,41 @@ from app.utils.db import get_db
 import time
 from functools import lru_cache
 from io import BytesIO
-from langdetect import detect
-from gtts import gTTS
+# --- Moved to lazy import inside text_to_speech() fallback ---
+# from langdetect import detect
+# from gtts import gTTS
+# Reason: piper-tts is now the primary TTS. gTTS is only loaded as a fallback.
+# --- End ---
 import os
 
 from openai import OpenAI
-import whisper
-import torch
+# --- Old openai-whisper import (replaced by faster-whisper in app/utils/whisper_stt.py) ---
+# import whisper
+# import torch
+# --- End old import ---
+from app.utils.whisper_stt import transcribe_audio as _whisper_transcribe
 
 import logging
 
-bp = Blueprint("stt", __name__)
-logger = logging.getLogger(__name__)
-
-# ✅ Whisper / PyTorch configuration (server-safe)
-# Some CPU environments (e.g. certain staging/production hosts) can fail with
-# "RuntimeError: could not create a primitive" when using oneDNN/MKLDNN for conv1d.
-# Disabling MKLDNN and forcing CPU+float32 keeps behavior correct while avoiding
-# those hardware-specific crashes.
-torch.backends.mkldnn.enabled = False  # avoid oneDNN primitive creation issues
-
-# Lazy-load Whisper on first STT request to avoid startup OOM (DefaultCPUAllocator: not enough memory)
-_whisper_model = None
-
-def _get_whisper_model():
-    """Load Whisper base model on first use; cache or return None if OOM."""
-    global _whisper_model
-    if _whisper_model is not None:
-        return _whisper_model
-    try:
-        _whisper_model = whisper.load_model("base", device="cpu")
-        return _whisper_model
-    except Exception as e:
-        logger.warning("Whisper model load failed (STT disabled): %s", e)
-        return None
+# --- Old duplicate Whisper loader removed ---
+# Previously, chat.py loaded its own Whisper model independently of whisper_stt.py,
+# wasting ~1.5GB RAM on a duplicate. Now consolidated: /api/stt uses the shared
+# faster-whisper model in app/utils/whisper_stt.py via _whisper_transcribe().
+#
+# bp = Blueprint("stt", __name__)
+# torch.backends.mkldnn.enabled = False
+# _whisper_model = None
+# def _get_whisper_model():
+#     global _whisper_model
+#     if _whisper_model is not None:
+#         return _whisper_model
+#     try:
+#         _whisper_model = whisper.load_model("base", device="cpu")
+#         return _whisper_model
+#     except Exception as e:
+#         logger.warning("Whisper model load failed (STT disabled): %s", e)
+#         return None
+# --- End old duplicate loader ---
 
 logger = logging.getLogger(__name__)
 bp = Blueprint('chat', __name__)
@@ -719,7 +720,7 @@ def get_user_info():
 @login_required
 def speech_to_text():
     """
-    Convert uploaded speech audio to text using local Whisper base model.
+    Convert uploaded speech audio to text using faster-whisper (shared model).
 
     Expects multipart/form-data with field "audio".
     Returns JSON: {"text": "..."} on success.
@@ -734,25 +735,18 @@ def speech_to_text():
 
         from tempfile import NamedTemporaryFile
 
-        model = _get_whisper_model()
-        if model is None:
-            return jsonify({'error': 'Speech-to-text unavailable (model could not be loaded)'}), 503
-
         tmp_path = None
         try:
             with NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
                 audio_file.save(tmp.name)
                 tmp_path = tmp.name
 
-            result = model.transcribe(
-                tmp_path,
-                fp16=False,      # important if no GPU
-                language="en"    # optional but faster if known
-            )
+            # Uses shared faster-whisper model from app/utils/whisper_stt.py.
+            # Language is auto-detected (no longer hardcoded to "en").
+            text = _whisper_transcribe(tmp_path)
 
-            text = result.get("text", "").strip()
             if not text:
-                return jsonify({'error': 'Transcription failed'}), 500
+                return jsonify({'error': 'Speech-to-text unavailable or transcription failed'}), 503
 
             return jsonify({'text': text})
         finally:
@@ -842,8 +836,14 @@ def chatbot_update():
 import re
 from io import BytesIO
 from flask import request, jsonify, send_file
-from gtts import gTTS
-from langdetect import detect
+# --- Old gTTS imports (replaced by piper-tts with gTTS fallback) ---
+# from gtts import gTTS
+# from langdetect import detect
+# Reason: gTTS uses Google's concatenative TTS (robotic voice, network-dependent,
+# rate-limited). Piper uses neural VITS voices locally — better quality, offline.
+# gTTS is kept as a fallback if piper-tts is not installed (e.g. macOS dev).
+# --- End old imports ---
+from app.utils.piper_tts import synthesize_speech as _piper_synthesize
 
 def clean_text_for_tts(text: str) -> str:
     """
@@ -862,8 +862,9 @@ def clean_text_for_tts(text: str) -> str:
 @login_required
 def text_to_speech():
     """
-    Convert text to speech using gTTS.
-    Cleans symbols before sending text to TTS.
+    Convert text to speech. Uses piper-tts (local neural TTS) if available,
+    falls back to gTTS (Google cloud TTS) otherwise.
+    Cleans markdown symbols before synthesis.
     """
     try:
         data = request.get_json() or {}
@@ -872,17 +873,29 @@ def text_to_speech():
         if not text:
             return jsonify({'error': 'Text is required'}), 400
 
-        # ✅ Clean text before TTS
+        # Clean text before TTS
         text = clean_text_for_tts(text)
 
-        # Detect language; fallback to English
+        # Try piper-tts first (local, neural, better quality)
+        audio_fp = _piper_synthesize(text)
+        if audio_fp is not None:
+            return send_file(
+                audio_fp,
+                mimetype='audio/wav',
+                as_attachment=False,
+                download_name='tts.wav'
+            )
+
+        # Fallback: gTTS (network-dependent, lower quality)
+        logger.info("Piper TTS unavailable, falling back to gTTS")
+        from langdetect import detect as _detect_lang
+        from gtts import gTTS
         try:
-            lang = detect(text)
+            lang = _detect_lang(text)
         except Exception as e:
             logger.warning(f"Language detection failed, defaulting to 'en': {str(e)}")
             lang = 'en'
 
-        # Generate speech
         tts = gTTS(text=text, lang=lang)
         audio_fp = BytesIO()
         tts.write_to_fp(audio_fp)

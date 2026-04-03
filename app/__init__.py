@@ -290,7 +290,12 @@ def create_app():
     app.register_blueprint(subscription_bp, url_prefix='/subscription')
     app.register_blueprint(admin_bp)
     app.register_blueprint(load_test_bp, url_prefix='/api/load-test')
-    
+
+    # Voice chat (Path B): WebSocket-based real-time STS via Pipecat
+    from app.voice.routes import bp as voice_bp, init_voice_websocket
+    app.register_blueprint(voice_bp)
+    init_voice_websocket(app)
+
     # Serve teacher dashboard static assets (css, js, assets from teacherfrontend)
     from flask import send_from_directory
     teacherfrontend_dir = os.path.join(base_dir, 'teacherfrontend')

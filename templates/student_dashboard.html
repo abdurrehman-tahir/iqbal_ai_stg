@@ -3002,6 +3002,14 @@
                 title="Text to speech" aria-label="Text to speech">
                 <i class="fas fa-volume-up text-lg md:text-xl"></i>
               </button>
+
+              <!-- Voice Chat Button (Pipecat real-time STS) -->
+              <button id="voiceChatBtn"
+                onclick="startVoiceChat({ role: 'student', lessonQaId: window.currentLessonQAId })"
+                class="text-gray-600 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-indigo-50 touch-target"
+                title="Voice Chat (real-time)" aria-label="Start voice chat">
+                <i class="fas fa-headset text-lg md:text-xl"></i>
+              </button>
             </div>
 
             <!-- Main Input Area (Clean, Mobile-Friendly) -->
@@ -3226,6 +3234,11 @@
       let speechRecognition = null;
       let speechSynthesis = null;
       let isTextToSpeechActive = false;
+      // Voice I/O state: MediaRecorder for backend STT (replacing Web Speech API)
+      let mediaRecorder = null;
+      let audioChunks = [];
+      let mediaStream = null;
+      let isSpeaking = false; // True while TTS is playing — prevents mic/speaker overlap
       let currentChatMenuId = null;
       let lessonCreationCompleted = false; // Flag to track if first lesson is created
       const STUDENT_ACTIVE_VIEW_KEY = 'Student_active_view';
@@ -3503,43 +3516,47 @@
           updateSendButton();
         });
 
-        // Initialize speech recognition if available
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-          speechRecognition = new SpeechRecognition();
-          speechRecognition.continuous = false;
-          speechRecognition.interimResults = true;
-          speechRecognition.lang = 'en-US';
+        // --- Old Web Speech API initialization (replaced by MediaRecorder → /api/stt) ---
+        // Reason: Web Speech API is Chrome/Edge only, cloud-dependent on Google,
+        // hardcoded to en-US, and gives no control over language or confidence.
+        // Replaced with MediaRecorder → backend faster-whisper for cross-browser
+        // support, offline capability, and multi-language auto-detection.
+        //
+        // if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        //   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        //   speechRecognition = new SpeechRecognition();
+        //   speechRecognition.continuous = false;
+        //   speechRecognition.interimResults = true;
+        //   speechRecognition.lang = 'en-US';
+        //   speechRecognition.onresult = function (event) {
+        //     const transcript = Array.from(event.results)
+        //       .map(result => result[0].transcript).join('');
+        //     document.getElementById('voiceText').textContent = transcript;
+        //     textarea.value = transcript;
+        //     updateSendButton();
+        //   };
+        //   speechRecognition.onend = function () {
+        //     if (isListening) { speechRecognition.start(); }
+        //     else {
+        //       document.getElementById('voiceStatus').classList.add('hidden');
+        //       document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+        //       document.getElementById('micBtn').classList.remove('active');
+        //     }
+        //   };
+        //   speechRecognition.onerror = function (event) {
+        //     console.error('Speech recognition error:', event.error);
+        //     stopVoiceInput();
+        //     alert('Speech recognition error: ' + event.error);
+        //   };
+        // } else {
+        //   document.getElementById('micBtn').disabled = true;
+        //   document.getElementById('micBtn').title = 'Speech recognition not supported';
+        //   document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone-slash"></i>';
+        // }
+        // --- End old Web Speech API ---
 
-          speechRecognition.onresult = function (event) {
-            const transcript = Array.from(event.results)
-              .map(result => result[0].transcript)
-              .join('');
-            document.getElementById('voiceText').textContent = transcript;
-            textarea.value = transcript;
-            updateSendButton();
-          };
-
-          speechRecognition.onend = function () {
-            if (isListening) {
-              speechRecognition.start();
-            } else {
-              document.getElementById('voiceStatus').classList.add('hidden');
-              document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone"></i>';
-              document.getElementById('micBtn').classList.remove('active');
-            }
-          };
-
-          speechRecognition.onerror = function (event) {
-            console.error('Speech recognition error:', event.error);
-            stopVoiceInput();
-            alert('Speech recognition error: ' + event.error);
-          };
-        } else {
-          document.getElementById('micBtn').disabled = true;
-          document.getElementById('micBtn').title = 'Speech recognition not supported';
-          document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone-slash"></i>';
-        }
+        // MediaRecorder STT: mic button is always enabled (MediaRecorder is supported in all modern browsers)
+        // No initialization needed here — MediaRecorder is created on-demand in toggleVoiceInput()
 
         // Initialize speech synthesis
         speechSynthesis = window.speechSynthesis;
@@ -5848,33 +5865,125 @@
         }
       }
 
-      // Toggle voice input
-      function toggleVoiceInput() {
-        if (!speechRecognition) {
-          alert('Speech recognition is not supported in your browser.');
+      // --- Old Web Speech API toggleVoiceInput (replaced by MediaRecorder → /api/stt) ---
+      // function toggleVoiceInput() {
+      //   if (!speechRecognition) {
+      //     alert('Speech recognition is not supported in your browser.');
+      //     return;
+      //   }
+      //   if (!isListening) {
+      //     speechRecognition.start();
+      //     isListening = true;
+      //     document.getElementById('voiceStatus').classList.remove('hidden');
+      //     document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone-slash"></i>';
+      //     document.getElementById('micBtn').classList.add('active');
+      //   } else { stopVoiceInput(); }
+      // }
+      // function stopVoiceInput() {
+      //   if (speechRecognition && isListening) { speechRecognition.stop(); isListening = false; }
+      // }
+      // --- End old Web Speech API ---
+
+      // Toggle voice input: record with MediaRecorder, then send to backend /api/stt (faster-whisper)
+      // Ported from teacher_dashboard.html with auto-send after transcription.
+      async function toggleVoiceInput() {
+        const micBtn = document.getElementById('micBtn');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const voiceText = document.getElementById('voiceText');
+        const textarea = document.getElementById('messageInput');
+
+        // Refuse to record while AI is speaking (prevents feedback loop)
+        if (isSpeaking) {
+          showToast('Wait for the AI to finish speaking', 'info');
           return;
         }
 
         if (!isListening) {
-          speechRecognition.start();
-          isListening = true;
-          document.getElementById('voiceStatus').classList.remove('hidden');
-          document.getElementById('micBtn').innerHTML = '<i class="fas fa-microphone-slash"></i>';
-          document.getElementById('micBtn').classList.add('active');
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: true, noiseSuppression: true }
+            });
+            mediaRecorder = new MediaRecorder(mediaStream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = function (e) {
+              if (e.data.size > 0) audioChunks.push(e.data);
+            };
+            mediaRecorder.onstop = async function () {
+              if (mediaStream) {
+                mediaStream.getTracks().forEach(function (t) { t.stop(); });
+                mediaStream = null;
+              }
+              if (audioChunks.length === 0) {
+                if (voiceStatus) voiceStatus.classList.add('hidden');
+                if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone"></i>'; micBtn.classList.remove('active'); }
+                isListening = false;
+                return;
+              }
+              const mimeType = mediaRecorder.mimeType || 'audio/webm';
+              const blob = new Blob(audioChunks, { type: mimeType });
+              if (voiceText) voiceText.textContent = 'Transcribing...';
+              try {
+                const fd = new FormData();
+                fd.append('audio', blob, 'audio.webm');
+                const res = await fetch('/api/stt', { method: 'POST', credentials: 'include', body: fd });
+                const data = await res.json().catch(function () { return {}; });
+                if (res.ok && data.text) {
+                  if (textarea) { textarea.value = data.text; updateSendButton(); }
+                  if (voiceText) voiceText.textContent = data.text;
+                  showToast('Voice transcribed', 'success');
+                  // Auto-send the transcribed message
+                  if (textarea && textarea.value.trim()) {
+                    sendMessage();
+                  }
+                } else {
+                  if (voiceText) voiceText.textContent = data.error || 'Transcription failed';
+                  showToast(data.error || 'Transcription failed', 'error');
+                }
+              } catch (err) {
+                console.error('STT error:', err);
+                if (voiceText) voiceText.textContent = 'Network error';
+                showToast('Could not reach speech service', 'error');
+              }
+              if (voiceStatus) voiceStatus.classList.add('hidden');
+              if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone"></i>'; micBtn.classList.remove('active'); }
+              isListening = false;
+            };
+            mediaRecorder.start();
+            isListening = true;
+            if (voiceStatus) {
+              voiceStatus.classList.remove('hidden');
+              if (voiceText) voiceText.textContent = 'Listening... Speak now. Click mic again to stop.';
+            }
+            if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>'; micBtn.classList.add('active'); }
+          } catch (err) {
+            console.error('Microphone error:', err);
+            showToast('Microphone access denied or not available', 'error');
+          }
         } else {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+          }
           stopVoiceInput();
         }
       }
 
-      // Stop voice input
       function stopVoiceInput() {
-        if (speechRecognition && isListening) {
-          speechRecognition.stop();
-          isListening = false;
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
         }
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(function (t) { t.stop(); });
+          mediaStream = null;
+        }
+        isListening = false;
+        var voiceStatus = document.getElementById('voiceStatus');
+        var micBtn = document.getElementById('micBtn');
+        if (voiceStatus) voiceStatus.classList.add('hidden');
+        if (micBtn) { micBtn.innerHTML = '<i class="fas fa-microphone"></i>'; micBtn.classList.remove('active'); }
       }
 
-      // Toggle text-to-speech
+      // Toggle text-to-speech (browser speechSynthesis)
+      // Includes feedback loop protection: disables mic while speaking, re-enables when done.
       function toggleTextToSpeech() {
         const speakerBtn = document.getElementById('speakerBtn');
 
@@ -5886,6 +5995,10 @@
             speechSynthesis.cancel();
           }
           isTextToSpeechActive = false;
+          isSpeaking = false;
+          // Re-enable mic button
+          var micBtn = document.getElementById('micBtn');
+          if (micBtn) { micBtn.disabled = false; micBtn.style.opacity = '1'; }
         } else {
           // Activate
           speakerBtn.classList.add('active');
@@ -5899,16 +6012,35 @@
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
+            // Feedback loop protection: lock mic while speaking
+            isSpeaking = true;
+            stopVoiceInput(); // Stop any active recording
+            var micBtn = document.getElementById('micBtn');
+            if (micBtn) { micBtn.disabled = true; micBtn.style.opacity = '0.5'; }
+
             utterance.onend = function () {
               speakerBtn.classList.remove('active');
               speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
               isTextToSpeechActive = false;
+              isSpeaking = false;
+              // Re-enable mic button
+              var micBtn = document.getElementById('micBtn');
+              if (micBtn) { micBtn.disabled = false; micBtn.style.opacity = '1'; }
+            };
+
+            utterance.onerror = function () {
+              isSpeaking = false;
+              isTextToSpeechActive = false;
+              speakerBtn.classList.remove('active');
+              speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+              var micBtn = document.getElementById('micBtn');
+              if (micBtn) { micBtn.disabled = false; micBtn.style.opacity = '1'; }
             };
 
             speechSynthesis.speak(utterance);
             isTextToSpeechActive = true;
           } else {
-            alert('No AI messages to read aloud.');
+            showToast('No AI messages to read aloud.', 'info');
             speakerBtn.classList.remove('active');
             speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
           }
@@ -6678,6 +6810,10 @@
         }
       })();
     </script>
+
+<!-- Voice Chat JS (Pipecat real-time STS) -->
+<script src="{{ url_for('static', filename='js/voice_chat.js') }}"></script>
+
 </body>
 
 </html>

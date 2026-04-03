@@ -197,8 +197,18 @@ opentelemetry-exporter-otlp-proto-common
 opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-semantic-conventions
 coloredlogs
-gTTS
-openai-whisper
+# --- Old speech dependencies (replaced by faster-whisper + piper-tts) ---
+# gTTS                    # Kept as fallback; lazy-imported in /api/tts if piper unavailable
+# openai-whisper           # Replaced by faster-whisper (4-8x faster on CPU, int8 quantization)
+# --- End old speech deps ---
+
+# Speech: faster-whisper for STT, piper-tts for TTS
+faster-whisper
+piper-tts
+
+# Pipecat voice chat (Path B) — real-time STS pipeline
+pipecat-ai[silero,whisper,kokoro]
+flask-sock
 
 langgraph
 langgraph-checkpoint
