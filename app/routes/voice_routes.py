@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request, session, current_app
+from flask import Blueprint, jsonify, request, session, current_app, Response, stream_with_context
 from app.utils.auth import login_required
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -46,3 +47,34 @@ def track_voice_state():
         user_id, event_type, prev_state, state, payload.get('meta')
     )
     return jsonify({'success': True})
+
+
+@bp.route('/assistant_stream', methods=['POST'])
+@login_required
+def assistant_stream():
+    """
+    Phase-2 kickoff endpoint:
+    Streams assistant text chunks over SSE so frontend can start rendering
+    incrementally while backend/transport is evolved to full duplex.
+    """
+    payload = request.get_json(silent=True) or {}
+    text = str(payload.get('text') or '').strip()
+    if not text:
+        return jsonify({'success': False, 'error': 'text is required'}), 400
+
+    chunk_size = int(payload.get('chunk_size') or 80)
+    chunk_size = max(20, min(chunk_size, 240))
+
+    def _event_stream():
+        for i in range(0, len(text), chunk_size):
+            chunk = text[i:i + chunk_size]
+            event = {'type': 'assistant_text_chunk', 'chunk': chunk}
+            yield f"data: {json.dumps(event)}\n\n"
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    headers = {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no'
+    }
+    return Response(stream_with_context(_event_stream()), headers=headers)

@@ -83,6 +83,11 @@ Implement Phase 1 foundations for unified teacher+student voice behavior with an
 - This update also includes Phase 1B hardening telemetry and transition validation.
 - Next step is live websocket audio event loop and server-side streaming handlers behind the same feature flags.
 
+## Next phase kickoff (started)
+- Added `POST /api/voice/assistant_stream` SSE endpoint in `app/routes/voice_routes.py` for incremental assistant text chunk delivery.
+- Added `VoiceStreamClient.streamAssistantText()` helper in `static/js/voice-stream-client.js` to consume SSE chunks from the new endpoint.
+- Purpose: provide a working incremental text-stream path now, before full duplex audio websocket transport is added.
+
 ## Screenshot note
 - UI screenshots were not attached in this iteration because a browser screenshot tool was not available in the current execution environment.
 - No local browser automation stack was installed as part of this task (intentionally, to avoid ad-hoc environment drift).

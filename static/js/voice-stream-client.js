@@ -96,6 +96,36 @@
     postState(this.state, this.state, Object.assign({ event: eventName }, meta || {}), 'event');
   };
 
+  VoiceStreamClient.prototype.streamAssistantText = async function (text, onChunk, onDone) {
+    const res = await fetch('/api/voice/assistant_stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ text: text })
+    });
+    if (!res.ok || !res.body) throw new Error('assistant_stream failed');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+      for (const raw of parts) {
+        const line = raw.split('\n').find(l => l.startsWith('data: '));
+        if (!line) continue;
+        try {
+          const payload = JSON.parse(line.slice(6));
+          if (payload.type === 'assistant_text_chunk' && typeof onChunk === 'function') onChunk(payload.chunk || '');
+          if (payload.type === 'done' && typeof onDone === 'function') onDone();
+        } catch (e) {}
+      }
+    }
+  };
+
   VoiceStreamClient.STATES = STATES;
   window.VoiceStreamClient = VoiceStreamClient;
 })(window);
