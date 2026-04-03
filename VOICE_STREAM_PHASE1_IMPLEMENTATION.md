@@ -90,3 +90,26 @@ Implement Phase 1 foundations for unified teacher+student voice behavior with an
   1. mic disabled during TTS
   2. state-transition behavior
   3. voice-mode toggle and error states
+
+## Glossary / clarification of terms used in updates
+
+### What “telemetry” means here
+In this implementation, **telemetry** means lightweight runtime signals sent from browser -> backend for visibility/debugging.  
+It is **not** user content logging; it is event/metric metadata about voice state transitions and durations.
+
+Examples:
+- `transition`: state moved (e.g., `LISTENING -> TRANSCRIBING`)
+- `event`: notable behavior (e.g., mic blocked during speaking)
+- `metric`: measured duration in milliseconds (e.g., STT roundtrip)
+- `invalid_transition`: blocked state change that violates the allowed state graph
+
+### Teacher dashboard telemetry (what was meant)
+- **blocked-mic events**: user clicked mic while state is non-idle, so listening is blocked and event is reported.
+- **STT roundtrip timing**: timer around `/api/stt` request (start before request, stop on response/error).
+- **forced-stop-for-TTS events**: when speaking starts, active listening is forcibly stopped and event is reported.
+
+### Student dashboard telemetry (what was meant)
+- **blocked-mic events**: user attempted to start listening while state was not eligible.
+- **listening/toggle timing**: duration from start-listening to stop-listening in current implementation.
+- **TTS playback timing**: duration of speech synthesis playback (including manual stop/end events).
+- **forced-stop before speaking**: listening is stopped before TTS playback starts to prevent feedback loops.
